@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: edupanel-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-edupanel}
+      POSTGRES_USER: ${POSTGRES_USER:-edupanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edupanel}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: edupanel-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-edupanel}:${POSTGRES_PASSWORD:-edupanel}@db:5432/${POSTGRES_DB:-edupanel}?schema=public
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

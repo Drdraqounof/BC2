@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CampaignStatus {
+  DRAFT
+  IN_PROGRESS
+  NEEDS_FOLLOW_UP
+  ON_TRACK
+  COMPLETED
+}
+
+enum CampaignType {
+  MISSING_ASSIGNMENTS_RECOVERY
+  ATTENDANCE_IMPROVEMENT
+  TEST_PREPARATION_INITIATIVE
+  STUDENT_PERFORMANCE_BOOST
+  PARENT_ENGAGEMENT_PUSH
+  CUSTOM
+}
+
+enum CampaignStudentStatus {
+  PENDING
+  NEEDS_REMINDER
+  FAMILY_OUTREACH
+  INTERVENTION_ADDED
+  IMPROVING
+  COMPLETED
+}
+
+enum SignalType {
+  MISSING_WORK
+  ATTENDANCE
+  ASSESSMENT_RISK
+  ENGAGEMENT
+  BEHAVIOR
+  OTHER
+}
+
+enum SignalSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum PromptCategory {
+  FAMILY_OUTREACH
+  STUDENT_CHECK_IN
+  COACHING_SUMMARY
+  ADMIN_UPDATE
+  CUSTOM
+}
+
+model Teacher {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  firstName     String
+  lastName      String
+  schoolName    String?
+  campaigns     Campaign[]     @relation("CampaignOwner")
+  authoredNotes CampaignNote[] @relation("CampaignNoteAuthor")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Student {
+  id            String            @id @default(cuid())
+  externalId    String?           @unique
+  firstName     String
+  lastName      String
+  gradeLabel    String?
+  courseLabel   String?
+  supportStatus String?
+  campaigns     CampaignStudent[]
+  signals       StudentSignal[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+model Campaign {
+  id               String            @id @default(cuid())
+  title            String
+  description      String?
+  type             CampaignType      @default(CUSTOM)
+  goal             String
+  status           CampaignStatus    @default(DRAFT)
+  progress         Int               @default(0)
+  startDate        DateTime?
+  endDate          DateTime?
+  ownerId          String
+  owner            Teacher           @relation("CampaignOwner", fields: [ownerId], references: [id])
+  studentLinks     CampaignStudent[]
+  notes            CampaignNote[]
+  promptTemplates  PromptTemplate[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([ownerId, status])
+  @@index([type, status])
+}
+
+model CampaignStudent {
+  id         String                @id @default(cuid())
+  campaignId String
+  studentId  String
+  status     CampaignStudentStatus @default(PENDING)
+  note       String?
+  campaign   Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  student    Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  @@unique([campaignId, studentId])
+  @@index([studentId, status])
+}
+
+model StudentSignal {
+  id             String         @id @default(cuid())
+  studentId      String
+  type           SignalType
+  label          String
+  severity       SignalSeverity @default(MEDIUM)
+  isActive       Boolean        @default(true)
+  followUpStatus String?
+  detectedAt     DateTime       @default(now())
+  resolvedAt     DateTime?
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, isActive])
+  @@index([type, severity])
+}
+
+model CampaignNote {
+  id         String    @id @default(cuid())
+  campaignId String
+  authorId   String?
+  body       String
+  campaign   Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  author     Teacher?  @relation("CampaignNoteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([campaignId, createdAt])
+}
+
+model PromptTemplate {
+  id         String         @id @default(cuid())
+  title      String
+  prompt     String
+  category   PromptCategory @default(CUSTOM)
+  isSystem   Boolean        @default(false)
+  campaignId String?
+  campaign   Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([category, isSystem])
+}

@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EduPanel
+
+EduPanel is a Next.js prototype for a teacher-facing intervention workspace. It focuses on one workflow: surface classroom signals, turn them into campaigns, and track whether support is improving outcomes.
+
+The current app is a front-end demo. Pages are driven by local mock data in `app/dashboard-data.ts`, and the login flow is navigational only.
+
+## Stack
+
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Prisma ORM
+- PostgreSQL (Docker)
+
+## Product Areas
+
+### Public Pages
+
+- `/` landing page for EduPanel
+- `/features` product overview and workflow explanation
+- `/login` teacher sign-in screen
+
+### Dashboard Pages
+
+- `/active-campaigns` active intervention campaigns
+- `/progress-tracking` outcome metrics and four-week trends
+- `/students` student list with signals and support status
+- `/ai-writer` prompt library and outreach draft preview
+
+## Current Scope
+
+- Marketing site and dashboard UI are implemented
+- Dashboard content is powered by static demo data
+- Sidebar navigation is shared through the dashboard layout
+- No database, API routes, or persistent auth are configured yet
+- No form submission or server-side data mutations are implemented yet
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- npm
+
+### Install
+
+```bash
+npm install
+```
+
+### Start Postgres With Docker
+
+```bash
+npm run docker:up
+```
+
+The database runs on `localhost:5432` by default.
+
+### Prepare Prisma
+
+```bash
+npm run prisma:generate
+npm run prisma:push
+```
+
+### Run The App
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run docker:up
+npm run docker:down
+npm run prisma:generate
+npm run prisma:validate
+npm run prisma:push
+npm run prisma:migrate
+npm run prisma:studio
+```
 
-## Learn More
+## Docker And Database
 
-To learn more about Next.js, take a look at the following resources:
+- `docker-compose.yml` starts a Postgres 16 database and an app container
+- `Dockerfile` builds the Next.js app for containerized runs
+- `.env.example` shows the local database variables Prisma expects
+- `.env` is included for local development only and is ignored by git
+- Never commit real OAuth secrets; keep them only in `.env` or your deployment platform secret store
+- Do not expose server secrets with a `NEXT_PUBLIC_` prefix
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Prisma Schema
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The schema lives in `prisma/schema.prisma` and models the current EduPanel domain:
 
-## Deploy on Vercel
+- `Teacher` for teacher accounts and campaign ownership
+- `Student` for tracked learners
+- `Campaign` for intervention plans
+- `CampaignStudent` for campaign membership and per-student status
+- `StudentSignal` for risk indicators like missing work or attendance
+- `CampaignNote` for intervention notes
+- `PromptTemplate` for reusable AI writer prompts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+app/
+	(dashboard)/
+		active-campaigns/
+		ai-writer/
+		progress-tracking/
+		students/
+		layout.tsx
+	components/
+		sidebar-shell.tsx
+	dashboard-data.ts
+	features/
+	homepage.tsx
+	login/
+	page.tsx
+	layout.tsx
+```
+
+## Notes For Development
+
+- Shared dashboard demo content lives in `app/dashboard-data.ts`
+- Global theme tokens and animation utilities live in `app/globals.css`
+- The root page delegates to `app/homepage.tsx`
+- The dashboard pages are grouped under `app/(dashboard)` and rendered inside the sidebar shell
+- Reuse the Prisma singleton from `lib/prisma.ts` for server-side database access
+
+## Possible Next Steps
+
+- Replace mock dashboard data with a real backend
+- Add real authentication for teachers
+- Connect campaign creation and student detail flows
+- Add tests for navigation and page rendering
