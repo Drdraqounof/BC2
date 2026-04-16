@@ -1,8 +1,36 @@
 # EduPanel
 
-EduPanel is a Next.js prototype for a teacher-facing intervention workspace. It focuses on one workflow: surface classroom signals, turn them into campaigns, and track whether support is improving outcomes.
+## Problem Statement
 
-The current app is a front-end demo. Pages are driven by local mock data in `app/dashboard-data.ts`, and the login flow is navigational only.
+Teachers currently rely on fragmented tools (gradebooks, spreadsheets, LMS dashboards, emails) to manage student performance and behavior. While data is available, it is not actionable in a structured workflow, making it difficult to:
+
+- Identify which students need intervention
+- Turn insights into concrete actions
+- Track whether interventions are working
+- Communicate effectively with students/parents
+
+As a result, student issues are often reactive instead of proactive, and teacher workload increases due to manual tracking and messaging.
+
+## Solution
+
+EduPanel introduces **Campaigns**, a structured intervention system that transforms classroom data into goal-driven action plans.
+
+Each campaign:
+- Targets a specific issue (attendance, missing work, grades)
+- Groups relevant students
+- Defines a measurable outcome
+- Tracks progress over time
+- Automates communication via AI messaging
+
+## Expected Outcome
+
+EduPanel shifts teachers from:
+- ❌ "Looking at data"
+- ✅ "Acting on data with measurable outcomes"
+
+## About
+
+EduPanel is a Next.js prototype for a teacher-facing intervention workspace. The current app is a front-end demo with pages driven by local mock data in `app/dashboard-data.ts` and navigational login flow.
 
 ## Stack
 
@@ -30,11 +58,13 @@ The current app is a front-end demo. Pages are driven by local mock data in `app
 
 ## Current Scope
 
-- Marketing site and dashboard UI are implemented
-- Dashboard content is powered by static demo data
-- Sidebar navigation is shared through the dashboard layout
-- No database, API routes, or persistent auth are configured yet
-- No form submission or server-side data mutations are implemented yet
+- Dashboard UI for intervention campaigns is implemented
+- Dashboard content is powered by static demo data in `app/dashboard-data.ts`
+- Sidebar navigation is shared across all dashboard pages
+- Frontend workflows for campaigns, progress tracking, and student signals are in place
+- Database schema (Prisma) is defined but not yet connected
+- No API routes, server-side mutations, or persistent authentication are configured yet
+- Login flow is navigational only
 
 ## Getting Started
 

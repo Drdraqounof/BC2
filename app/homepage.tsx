@@ -67,7 +67,7 @@ const campaignExamples = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-stone-50 via-amber-50 to-teal-50">
+    <main className="min-h-screen bg-gradient-to-b from-stone-50 via-amber-50 to-teal-50 text-black">
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-teal-100 opacity-25 mix-blend-multiply filter blur-3xl animate-blob"></div>
@@ -81,16 +81,16 @@ export default function HomePage() {
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-700 to-amber-500">
-                <span className="text-white font-bold text-sm">EP</span>
+                <span className="font-bold text-sm text-black">EP</span>
               </div>
-              <span className="font-semibold text-slate-900">EduPanel</span>
+              <span className="font-semibold text-black">EduPanel</span>
             </div>
-            <div className="hidden md:flex items-center gap-8 text-sm text-slate-600">
-              <a href="#features" className="hover:text-slate-900 transition">Features</a>
-              <a href="#" className="hover:text-slate-900 transition">Learn More</a>
+            <div className="hidden md:flex items-center gap-8 text-sm text-black">
+              <a href="#features" className="transition hover:text-black">Features</a>
+              <a href="#" className="transition hover:text-black">Learn More</a>
               <Link
                 href="/login"
-                className="rounded-full bg-teal-700 px-4 py-2 font-medium text-white transition-colors hover:bg-teal-800"
+                className="rounded-full bg-amber-200 px-4 py-2 font-medium text-black transition-colors hover:bg-amber-300"
               >
                 Login
               </Link>
@@ -102,25 +102,25 @@ export default function HomePage() {
         <section className="max-w-6xl mx-auto px-6 py-20 md:py-32">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="mb-4 inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-800">
+              <div className="mb-4 inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-black">
                 For Teachers Who Want Better Results
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
+              <h1 className="mb-6 text-5xl font-bold leading-tight text-black md:text-6xl">
                 Move from data to action.
               </h1>
-              <p className="text-xl text-slate-600 leading-relaxed mb-8 max-w-xl">
+              <p className="mb-8 max-w-xl text-xl leading-relaxed text-black">
                 EduPanel turns classroom insights into focused interventions. See what needs attention, launch help quickly, and know if it's working.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
                   href="/features"
-                  className="cursor-pointer rounded-lg bg-gradient-to-r from-teal-700 to-teal-800 px-8 py-4 text-center font-semibold text-white transition-all hover:scale-105 hover:shadow-lg"
+                  className="cursor-pointer rounded-lg bg-amber-200 px-8 py-4 text-center font-semibold text-black transition-all hover:scale-105 hover:bg-amber-300 hover:shadow-lg"
                 >
                   Explore Features
                 </Link>
                 <Link
                   href="/active-campaigns"
-                  className="cursor-pointer rounded-lg border-2 border-amber-300 bg-white px-8 py-4 text-center font-semibold text-amber-800 transition hover:border-amber-500 hover:bg-amber-50"
+                  className="cursor-pointer rounded-lg border-2 border-amber-300 bg-white px-8 py-4 text-center font-semibold text-black transition hover:border-amber-500 hover:bg-amber-50"
                 >
                   View Live Demo
                 </Link>
@@ -149,18 +149,18 @@ export default function HomePage() {
         </section>
 
         {/* Stats Section */}
-        <section className="bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950 py-16 text-white">
+        <section className="bg-gradient-to-r from-stone-100 via-amber-50 to-teal-100 py-16 text-black">
           <div className="max-w-6xl mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-12">
               {stats.map((stat) => (
                 <div key={stat.label} className="text-center md:text-left">
-                  <div className="mb-2 bg-gradient-to-r from-teal-300 to-amber-300 bg-clip-text text-5xl font-bold text-transparent">
+                  <div className="mb-2 text-5xl font-bold text-black">
                     {stat.value}
                   </div>
-                  <div className="mb-1 text-sm font-semibold uppercase tracking-widest text-teal-200">
+                  <div className="mb-1 text-sm font-semibold uppercase tracking-widest text-black">
                     {stat.label}
                   </div>
-                  <p className="text-slate-300">{stat.context}</p>
+                  <p className="text-black">{stat.context}</p>
                 </div>
               ))}
             </div>
@@ -170,10 +170,10 @@ export default function HomePage() {
         {/* Problems Section */}
         <section className="max-w-6xl mx-auto px-6 py-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+            <h2 className="mb-4 text-4xl font-bold text-black md:text-5xl">
               Why Teachers Are Stuck
             </h2>
-            <p className="text-xl text-slate-600">
+            <p className="text-xl text-black">
               The problem isn't missing data. It's missing clarity.
             </p>
           </div>
@@ -184,8 +184,8 @@ export default function HomePage() {
                 className="cursor-pointer rounded-2xl border-2 border-stone-200 bg-white p-8 transition hover:border-teal-300 hover:shadow-lg"
               >
                 <div className="text-4xl mb-4">{p.icon}</div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">{p.problem}</h3>
-                <p className="text-slate-600 leading-relaxed">{p.reality}</p>
+                <h3 className="mb-3 text-2xl font-bold text-black">{p.problem}</h3>
+                <p className="leading-relaxed text-black">{p.reality}</p>
               </div>
             ))}
           </div>
@@ -195,10 +195,10 @@ export default function HomePage() {
         <section id="features" className="bg-stone-100/85 py-20">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+              <h2 className="mb-4 text-4xl font-bold text-black md:text-5xl">
                 How EduPanel Works
               </h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              <p className="mx-auto max-w-3xl text-xl text-black">
                 Six capabilities that turn observations into measurable improvements.
               </p>
             </div>
@@ -209,10 +209,10 @@ export default function HomePage() {
                   className="cursor-pointer rounded-2xl border border-stone-200 bg-white p-8 transition-hover hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="text-5xl mb-4">{feature.icon}</div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">
+                  <h3 className="mb-3 text-2xl font-bold text-black">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-600 leading-relaxed">
+                  <p className="leading-relaxed text-black">
                     {feature.description}
                   </p>
                 </div>
@@ -224,17 +224,17 @@ export default function HomePage() {
         {/* Campaign Examples */}
         <section className="max-w-6xl mx-auto px-6 py-20">
           <div className="rounded-3xl border border-amber-200 bg-gradient-to-r from-amber-50 to-teal-50 p-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+            <h2 className="mb-2 text-3xl font-bold text-black md:text-4xl">
               Launch Any Type of Intervention
             </h2>
-            <p className="text-slate-600 mb-8 max-w-2xl">
+            <p className="mb-8 max-w-2xl text-black">
               Whether it's academic support, attendance recovery, or parent outreach—campaigns give you a structured way to respond.
             </p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {campaignExamples.map((example) => (
                 <div
                   key={example}
-                  className="cursor-pointer rounded-xl border border-amber-100 bg-white px-4 py-3 text-center text-sm font-medium text-slate-900 transition hover:border-teal-300"
+                  className="cursor-pointer rounded-xl border border-amber-100 bg-white px-4 py-3 text-center text-sm font-medium text-black transition hover:border-teal-300"
                 >
                   {example}
                 </div>
@@ -244,27 +244,27 @@ export default function HomePage() {
         </section>
 
         {/* Benefits Section */}
-        <section className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 py-20 text-white">
+        <section className="bg-gradient-to-r from-stone-100 via-amber-50 to-stone-200 py-20 text-black">
           <div className="max-w-6xl mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-12">
               <div>
-                <div className="mb-4 text-4xl font-bold text-teal-300">1</div>
+                <div className="mb-4 text-4xl font-bold text-black">1</div>
                 <h3 className="text-2xl font-bold mb-3">Priority is Clear</h3>
-                <p className="text-slate-300">
+                <p className="text-black">
                   Stop wondering which issue deserves attention first. EduPanel highlights what's urgent.
                 </p>
               </div>
               <div>
-                <div className="mb-4 text-4xl font-bold text-amber-300">2</div>
+                <div className="mb-4 text-4xl font-bold text-black">2</div>
                 <h3 className="text-2xl font-bold mb-3">Interventions Have Purpose</h3>
-                <p className="text-slate-300">
+                <p className="text-black">
                   Every action has a goal and a student group. No more informal, inconsistent support.
                 </p>
               </div>
               <div>
-                <div className="mb-4 text-4xl font-bold text-cyan-300">3</div>
+                <div className="mb-4 text-4xl font-bold text-black">3</div>
                 <h3 className="text-2xl font-bold mb-3">Outcomes Are Measurable</h3>
-                <p className="text-slate-300">
+                <p className="text-black">
                   Track progress over time instead of watching results disappear into dashboards.
                 </p>
               </div>
@@ -274,23 +274,23 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <section className="max-w-6xl mx-auto px-6 py-20">
-          <div className="rounded-3xl bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 p-12 text-center text-white md:p-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <div className="rounded-3xl bg-gradient-to-r from-amber-100 via-stone-50 to-teal-100 p-12 text-center text-black md:p-16">
+            <h2 className="mb-6 text-4xl font-bold text-black md:text-5xl">
               Ready to stop drowning in data?
             </h2>
-            <p className="mx-auto mb-8 max-w-3xl text-xl text-teal-100">
+            <p className="mx-auto mb-8 max-w-3xl text-xl text-black">
               See how teachers are using EduPanel to turn insights into action and actually move the needle for students.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/features"
-                className="cursor-pointer rounded-lg bg-white px-8 py-4 text-center font-bold text-teal-800 transition hover:bg-teal-50"
+                className="cursor-pointer rounded-lg bg-white px-8 py-4 text-center font-bold text-black transition hover:bg-amber-50"
               >
                 Explore Features
               </Link>
               <Link
                 href="/active-campaigns"
-                className="cursor-pointer rounded-lg border-2 border-white bg-white/10 px-8 py-4 text-center font-bold text-white transition hover:bg-white/20"
+                className="cursor-pointer rounded-lg border-2 border-stone-400 bg-white px-8 py-4 text-center font-bold text-black transition hover:bg-stone-100"
               >
                 Try the Demo
               </Link>
@@ -300,7 +300,7 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="border-t border-stone-200 bg-stone-50/80 py-12">
-          <div className="max-w-6xl mx-auto px-6 text-center text-slate-600 text-sm">
+          <div className="max-w-6xl mx-auto px-6 text-center text-sm text-black">
             <p>EduPanel • Helping teachers move from insight to action</p>
           </div>
         </footer>

@@ -1,31 +1,69 @@
-export const activeCampaigns = [
+export type CampaignGoalType = "Attendance" | "Grades" | "Behavior" | "Custom";
+
+export type CampaignRecord = {
+  id: string;
+  title: string;
+  description: string;
+  students: string;
+  selectedStudents: string[];
+  goal: string;
+  goalType: CampaignGoalType;
+  status: "Draft" | "In Progress" | "Needs Follow-Up" | "On Track" | "Completed";
+  progress: number;
+  accent: string;
+  archived: boolean;
+};
+
+export const activeCampaigns: CampaignRecord[] = [
   {
+    id: "campaign-missing-work",
     title: "Missing Assignments Recovery",
+    description: "Recover incomplete work before the next grade checkpoint.",
     students: "8 students",
+    selectedStudents: ["Maya Thompson", "Ava Patel", "Noah Rivera"],
     goal: "Reduce missing work to 2 by Friday",
+    goalType: "Grades",
     status: "In Progress",
     progress: 72,
     accent: "bg-[var(--signal-red)]",
+    archived: false,
   },
   {
+    id: "campaign-attendance",
     title: "Attendance Improvement",
+    description: "Support daily attendance with family outreach and check-ins.",
     students: "6 students",
+    selectedStudents: ["Noah Rivera", "Maya Thompson"],
     goal: "Raise weekly attendance to 95%",
+    goalType: "Attendance",
     status: "Needs Follow-Up",
     progress: 58,
     accent: "bg-[var(--signal-gold)]",
+    archived: false,
   },
   {
+    id: "campaign-test-prep",
     title: "Test Preparation Initiative",
+    description: "Build readiness before assessment week for the current cohort.",
     students: "13 students",
+    selectedStudents: ["Eli Johnson", "Ava Patel"],
     goal: "Lift benchmark readiness before assessment week",
+    goalType: "Custom",
     status: "On Track",
     progress: 84,
     accent: "bg-[var(--signal-green)]",
+    archived: false,
   },
 ];
 
-export const studentList = [
+export type StudentRecord = {
+  name: string;
+  grade: string;
+  signal: string;
+  status: string;
+};
+
+export const studentList: StudentRecord[] = [
   { name: "Maya Thompson", grade: "Algebra 2", signal: "Missing work", status: "Needs reminder" },
   { name: "Noah Rivera", grade: "Advisory", signal: "Attendance", status: "Family outreach" },
   { name: "Eli Johnson", grade: "Biology", signal: "Assessment risk", status: "Intervention added" },
