@@ -4,8 +4,10 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
+////////////////////////////////
+// ENUMS
+///////////////////////////////
 
 enum CampaignStatus {
   DRAFT
@@ -56,16 +58,52 @@ enum PromptCategory {
   CUSTOM
 }
 
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ActivityType {
+  CAMPAIGN_CREATED
+  CAMPAIGN_STATUS_CHANGED
+  STUDENT_ADDED_TO_CAMPAIGN
+  STUDENT_STATUS_CHANGED
+  TASK_CREATED
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  NOTE_ADDED
+  SIGNAL_DETECTED
+  SIGNAL_RESOLVED
+  OTHER
+}
+
+model School {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  teachers  Teacher[]
+  students  Student[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([name])
+}
+
 model Teacher {
   id            String         @id @default(cuid())
   email         String         @unique
   firstName     String
   lastName      String
-  schoolName    String?
+  schoolId      String?
+  school        School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   campaigns     Campaign[]     @relation("CampaignOwner")
   authoredNotes CampaignNote[] @relation("CampaignNoteAuthor")
+  createdTasks  Task[]         @relation("TaskCreator")
+  activityLogs  ActivityLog[]  @relation("ActivityCreator")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  @@index([schoolId, email])
 }
 
 model Student {
@@ -76,46 +114,55 @@ model Student {
   gradeLabel    String?
   courseLabel   String?
   supportStatus String?
+  schoolId      String?
+  school        School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   campaigns     CampaignStudent[]
+  taskAssignments TaskAssignment[]
   signals       StudentSignal[]
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
+  @@index([schoolId])
   @@index([lastName, firstName])
 }
 
 model Campaign {
-  id               String            @id @default(cuid())
-  title            String
-  description      String?
-  type             CampaignType      @default(CUSTOM)
-  goal             String
-  status           CampaignStatus    @default(DRAFT)
-  progress         Int               @default(0)
-  startDate        DateTime?
-  endDate          DateTime?
-  ownerId          String
-  owner            Teacher           @relation("CampaignOwner", fields: [ownerId], references: [id])
-  studentLinks     CampaignStudent[]
-  notes            CampaignNote[]
-  promptTemplates  PromptTemplate[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                    String            @id @default(cuid())
+  title                 String
+  description           String?
+  type                  CampaignType      @default(CUSTOM)
+  customType            String?           // For schools to add custom campaign types
+  goal                  String
+  status                CampaignStatus    @default(DRAFT)
+  progressSnapshot      Int               @default(0) // Computed from student statuses and task completion - not source of truth
+  startDate             DateTime?
+  endDate               DateTime?
+  ownerId               String
+  owner                 Teacher           @relation("CampaignOwner", fields: [ownerId], references: [id])
+  studentLinks          CampaignStudent[]
+  notes                 CampaignNote[]
+  tasks                 Task[]
+  promptTemplates       PromptTemplate[]
+  activityLogs          ActivityLog[]     @relation("CampaignActivity")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
   @@index([ownerId, status])
   @@index([type, status])
 }
 
 model CampaignStudent {
-  id         String                @id @default(cuid())
-  campaignId String
-  studentId  String
-  status     CampaignStudentStatus @default(PENDING)
-  note       String?
-  campaign   Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  student    Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  createdAt  DateTime              @default(now())
-  updatedAt  DateTime              @updatedAt
+  id              String                @id @default(cuid())
+  campaignId      String
+  studentId       String
+  status          CampaignStudentStatus @default(PENDING)
+  customStatus    String?               // For schools to add custom statuses
+  note            String?
+  campaign        Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  student         Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  activityLogs    ActivityLog[]         @relation("CampaignStudentActivity")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
 
   @@unique([campaignId, studentId])
   @@index([studentId, status])
@@ -125,6 +172,7 @@ model StudentSignal {
   id             String         @id @default(cuid())
   studentId      String
   type           SignalType
+  customType     String?        // For schools to add custom signal types
   label          String
   severity       SignalSeverity @default(MEDIUM)
   isActive       Boolean        @default(true)
@@ -132,6 +180,7 @@ model StudentSignal {
   detectedAt     DateTime       @default(now())
   resolvedAt     DateTime?
   student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  activityLogs   ActivityLog[]  @relation("SignalActivity")
 
   @@index([studentId, isActive])
   @@index([type, severity])
@@ -162,4 +211,60 @@ model PromptTemplate {
   updatedAt  DateTime       @updatedAt
 
   @@index([category, isSystem])
+}
+
+model Task {
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  dueDate           DateTime?
+  priority          TaskPriority       @default(MEDIUM)
+  rubric            String?
+  attachmentLinks   String?
+  campaignId        String?
+  creatorId         String
+  campaign          Campaign?          @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  creator           Teacher            @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  taskAssignments   TaskAssignment[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([campaignId])
+  @@index([creatorId, createdAt])
+  @@index([dueDate])
+}
+
+model TaskAssignment {
+  id          String    @id @default(cuid())
+  taskId      String
+  studentId   String
+  completedAt DateTime?
+  grade       String?
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([taskId, studentId])
+  @@index([studentId, completedAt])
+}
+
+model ActivityLog {
+  id                   String         @id @default(cuid())
+  type                 ActivityType
+  description          String
+  campaignId           String?
+  campaign             Campaign?      @relation("CampaignActivity", fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignStudentId    String?
+  campaignStudent      CampaignStudent? @relation("CampaignStudentActivity", fields: [campaignStudentId], references: [id], onDelete: Cascade)
+  studentSignalId      String?
+  studentSignal        StudentSignal? @relation("SignalActivity", fields: [studentSignalId], references: [id], onDelete: Cascade)
+  createdBy            String?
+  creator              Teacher?       @relation("ActivityCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  metadata             String?        // JSON field for additional context
+  createdAt            DateTime       @default(now())
+
+  @@index([campaignId, createdAt])
+  @@index([type, createdAt])
+  @@index([createdBy])
 }

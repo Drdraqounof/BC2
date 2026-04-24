@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import { activeCampaigns, studentList, type CampaignGoalType, type CampaignRecord } from "../../dashboard-data";
+import { activeCampaigns, studentList, mockTasks, type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
 
 type CampaignStatus = CampaignRecord["status"];
 
@@ -57,6 +57,7 @@ export default function ActiveCampaignsPage() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isStudentPickerOpen, setIsStudentPickerOpen] = useState(false);
+  const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
 
   const visibleCampaigns = useMemo(
     () => campaigns.filter((campaign) => !campaign.archived),
@@ -71,6 +72,11 @@ export default function ActiveCampaignsPage() {
   const selectedCampaign = useMemo(
     () => campaigns.find((campaign) => campaign.id === selectedCampaignId) ?? null,
     [campaigns, selectedCampaignId],
+  );
+
+  const campaignTasks = useMemo(
+    () => selectedCampaignId ? tasks.filter((task) => task.campaignId === selectedCampaignId) : [],
+    [tasks, selectedCampaignId],
   );
 
   function handleFieldChange<K extends keyof CampaignFormState>(field: K, value: CampaignFormState[K]) {
@@ -333,9 +339,16 @@ export default function ActiveCampaignsPage() {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-semibold tracking-[-0.03em]">
-                  {campaign.title}
-                </h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-semibold tracking-[-0.03em]">
+                    {campaign.title}
+                  </h2>
+                  {tasks.filter(t => t.campaignId === campaign.id).length > 0 && (
+                    <span className="rounded-full bg-[var(--signal-blue)] px-2 py-1 text-xs font-semibold text-white">
+                      {tasks.filter(t => t.campaignId === campaign.id).length}
+                    </span>
+                  )}
+                </div>
                 <p className="mt-2 text-sm text-[var(--muted)]">{campaign.students}</p>
               </div>
               <span className={`h-3 w-3 rounded-full ${campaign.accent}`} />
@@ -381,6 +394,15 @@ export default function ActiveCampaignsPage() {
               >
                 Edit details
               </button>
+              {tasks.filter(t => t.campaignId === campaign.id).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => openCampaignDetails(campaign)}
+                  className="rounded-full border border-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-[var(--signal-blue)] transition hover:bg-[var(--signal-blue)]/10"
+                >
+                  View tasks
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => completeCampaign(campaign.id)}
@@ -566,6 +588,40 @@ export default function ActiveCampaignsPage() {
                       <div className={`h-3 rounded-full ${selectedCampaign.accent}`} style={{ width: `${selectedCampaign.progress}%` }} />
                     </div>
                   </div>
+
+                  {campaignTasks.length > 0 && (
+                    <div className="mt-6 rounded-[24px] bg-[var(--panel)] p-5">
+                      <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
+                        Campaign Tasks ({campaignTasks.length})
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        {campaignTasks.map((task) => (
+                          <div key={task.id} className="rounded-lg bg-white p-3 text-sm">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="font-medium text-[var(--foreground)]">{task.title}</p>
+                                <p className="text-xs text-[var(--muted)]">
+                                  {task.completedCount} of {task.studentCount} students completed
+                                </p>
+                              </div>
+                              <span className={`rounded px-2 py-1 text-xs font-medium text-white ${
+                                task.priority === 'HIGH' ? 'bg-[var(--signal-red)]' :
+                                task.priority === 'MEDIUM' ? 'bg-[var(--signal-gold)]' :
+                                'bg-[var(--signal-green)]'
+                              }`}>
+                                {task.priority}
+                              </span>
+                            </div>
+                            {task.dueDate && (
+                              <p className="mt-2 text-xs text-[var(--muted)]">
+                                Due: {new Date(task.dueDate).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </section>
 
                 <section className="rounded-[30px] border border-[var(--border)] bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] md:p-8">
@@ -693,6 +749,12 @@ export default function ActiveCampaignsPage() {
                         className="rounded-2xl bg-[var(--signal-gold)] px-5 py-4 text-left text-sm font-medium text-white transition hover:opacity-90"
                       >
                         Archive this campaign
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-2xl border-2 border-[var(--signal-blue)] px-5 py-4 text-left text-sm font-medium text-[var(--signal-blue)] transition hover:bg-[var(--signal-blue)]/5"
+                      >
+                        {campaignTasks.length > 0 ? `View & manage tasks (${campaignTasks.length})` : "Create task for this campaign"}
                       </button>
                       {selectedCampaign.archived ? (
                         <button

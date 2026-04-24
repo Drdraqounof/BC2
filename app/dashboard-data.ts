@@ -136,3 +136,131 @@ export const featurePrinciples = [
   "Contextual data that explains why a signal matters.",
   "Goal-based workflows that move from observation to intervention.",
 ];
+
+export type TaskType = "Build/Design Project" | "Research" | "Writing" | "Problem Set" | "Other";
+
+export type Resource = {
+  id: string;
+  title: string;
+  url: string;
+};
+
+export type Evidence = {
+  id: string;
+  time: string;
+  date: string;
+  linkTitle: string;
+  url: string;
+};
+
+export type Rating = {
+  id: string;
+  category: string;
+  value: number;
+  author: string;
+};
+
+export type Comment = {
+  id: string;
+  author: string;
+  text: string;
+  timestamp: string;
+};
+
+export type TaskRecord = {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  expirationDate?: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  taskType?: TaskType;
+  rubric?: string;
+  attachmentLinks?: string[];
+  resources?: Resource[];
+  evidence?: Evidence[];
+  ratings?: Rating[];
+  comments?: Comment[];
+  campaignId?: string;
+  creatorId: string;
+  studentCount: number;
+  completedCount: number;
+  status: "pending" | "in-progress" | "completed" | "revision-submitted";
+};
+
+export const mockTasks: TaskRecord[] = [
+  {
+    id: "task-1",
+    title: "Complete Missing Algebra Worksheet",
+    description: "Students need to complete sections 3-5 of the Quadratic Equations worksheet.",
+    dueDate: "2026-04-24",
+    expirationDate: "2026-04-30",
+    priority: "HIGH",
+    taskType: "Problem Set",
+    rubric: "Full marks for all problems correct. Partial credit for working shown.",
+    attachmentLinks: ["https://example.com/worksheet.pdf"],
+    resources: [
+      { id: "res-1", title: "Quadratic Equations Guide", url: "https://example.com/guide.pdf" },
+      { id: "res-2", title: "Practice Problems", url: "https://example.com/practice.pdf" },
+    ],
+    evidence: [
+      { id: "ev-1", time: "14:30", date: "2026-04-24", linkTitle: "Completed worksheet", url: "https://example.com/submitted-1.pdf" },
+    ],
+    ratings: [
+      { id: "rat-1", category: "Accuracy", value: 7, author: "Teacher-1" },
+      { id: "rat-2", category: "Completeness", value: 8, author: "Teacher-1" },
+    ],
+    comments: [
+      { id: "com-1", author: "Teacher-1", text: "Good progress! Review section 4 for more practice.", timestamp: "2026-04-24T15:30:00Z" },
+    ],
+    campaignId: "campaign-missing-work",
+    creatorId: "teacher-1",
+    studentCount: 3,
+    completedCount: 1,
+    status: "in-progress",
+  },
+  {
+    id: "task-2",
+    title: "Attendance Check-In Call",
+    description: "Call home to check in on attendance patterns and discuss support needs.",
+    dueDate: "2026-04-23",
+    priority: "HIGH",
+    taskType: "Other",
+    rubric: "Document call in student file. Note any barriers and next steps.",
+    campaignId: "campaign-attendance",
+    creatorId: "teacher-1",
+    studentCount: 2,
+    completedCount: 1,
+    status: "in-progress",
+  },
+  {
+    id: "task-3",
+    title: "Biology Practice Quiz",
+    description: "Students complete practice quiz on cell division and photosynthesis.",
+    dueDate: "2026-04-22",
+    priority: "MEDIUM",
+    taskType: "Problem Set",
+    attachmentLinks: ["https://example.com/quiz.pdf"],
+    resources: [
+      { id: "res-3", title: "Study Guide", url: "https://example.com/bio-study.pdf" },
+    ],
+    campaignId: "campaign-test-prep",
+    creatorId: "teacher-1",
+    studentCount: 5,
+    completedCount: 5,
+    status: "completed",
+  },
+  {
+    id: "task-4",
+    title: "Peer Review Assignment",
+    description: "Standalone assignment: Students review and provide feedback on peer essays.",
+    dueDate: "2026-04-25",
+    priority: "MEDIUM",
+    taskType: "Writing",
+    rubric: "Feedback must include at least one strength and one area for improvement.",
+    creatorId: "teacher-1",
+    studentCount: 8,
+    completedCount: 3,
+    status: "revision-submitted",
+  },
+];

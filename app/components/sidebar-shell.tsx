@@ -6,6 +6,7 @@ import { useState } from "react";
 
 const navigationItems = [
   { href: "/active-campaigns", label: "Active Campaigns", shortLabel: "AC" },
+  { href: "/task-assignment", label: "Tasks", shortLabel: "TK" },
   { href: "/progress-tracking", label: "Progress Tracking", shortLabel: "PT" },
   { href: "/students", label: "Students", shortLabel: "ST" },
   { href: "/ai-writer", label: "AI Writer", shortLabel: "AI" },
