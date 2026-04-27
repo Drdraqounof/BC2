@@ -9,18 +9,12 @@ function LoginContent() {
   const router = useRouter();
   const role = searchParams.get("role") || "teacher";
   
-  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    school: "",
-    grade: "",
-    subject: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -29,12 +23,16 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
-    // Simulate form submission
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      // Handle login - for now just redirect to dashboard
       router.push("/dashboard");
-    }, 1000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+      setIsLoading(false);
+    }
   };
 
   const roleConfig: Record<string, any> = {
@@ -122,103 +120,20 @@ function LoginContent() {
               <div className="space-y-5">
                 <div>
                   <p className="text-sm uppercase tracking-[0.18em] text-slate-500">
-                    {isSignUp ? "Create Account" : "Sign In"}
+                    Sign In
                   </p>
                   <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-slate-900">
-                    {isSignUp ? "Get started" : "Welcome back"}
+                    Welcome back
                   </h2>
                 </div>
 
+                {error && (
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {isSignUp && (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className="block">
-                          <span className="mb-2 block text-sm font-medium text-slate-700">
-                            First Name
-                          </span>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            placeholder="John"
-                            className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                            required
-                          />
-                        </label>
-                        <label className="block">
-                          <span className="mb-2 block text-sm font-medium text-slate-700">
-                            Last Name
-                          </span>
-                          <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            placeholder="Doe"
-                            className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                            required
-                          />
-                        </label>
-                      </div>
-
-                      {role === "teacher" && (
-                        <>
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-slate-700">
-                              School/Institution
-                            </span>
-                            <input
-                              type="text"
-                              name="school"
-                              value={formData.school}
-                              onChange={handleInputChange}
-                              placeholder="Lincoln High School"
-                              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                              required
-                            />
-                          </label>
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-slate-700">
-                              Subject
-                            </span>
-                            <input
-                              type="text"
-                              name="subject"
-                              value={formData.subject}
-                              onChange={handleInputChange}
-                              placeholder="Mathematics"
-                              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                              required
-                            />
-                          </label>
-                        </>
-                      )}
-
-                      {role === "student" && (
-                        <label className="block">
-                          <span className="mb-2 block text-sm font-medium text-slate-700">
-                            Grade
-                          </span>
-                          <select
-                            name="grade"
-                            value={formData.grade}
-                            onChange={handleInputChange}
-                            className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                            required
-                          >
-                            <option value="">Select your grade</option>
-                            <option value="9">Grade 9</option>
-                            <option value="10">Grade 10</option>
-                            <option value="11">Grade 11</option>
-                            <option value="12">Grade 12</option>
-                          </select>
-                        </label>
-                      )}
-                    </>
-                  )}
-
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-slate-700">
                       Email
@@ -228,7 +143,7 @@ function LoginContent() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder={role === "teacher" ? "teacher@school.edu" : "student@school.edu"}
+                      placeholder="you@example.com"
                       className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                       required
                     />
@@ -243,46 +158,28 @@ function LoginContent() {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder="Enter password"
+                      placeholder="Enter your password"
                       className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                       required
                     />
                   </label>
-
-                  {isSignUp && (
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-slate-700">
-                        Confirm Password
-                      </span>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        placeholder="Confirm password"
-                        className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                        required
-                      />
-                    </label>
-                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full rounded-2xl px-5 py-3 text-center text-sm font-semibold text-white transition-colors ${config.buttonColor} disabled:opacity-50`}
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
+                  </button>
                 </form>
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  className={`w-full rounded-2xl px-5 py-3 text-center text-sm font-semibold text-white transition-colors ${config.buttonColor} disabled:opacity-50`}
-                >
-                  {isLoading ? "Processing..." : isSignUp ? "Create Account" : "Sign In"}
-                </button>
-
                 <div className="text-center text-sm text-slate-600">
-                  {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                  Don't have a password?{" "}
                   <button
                     type="button"
-                    onClick={() => setIsSignUp(!isSignUp)}
+                    onClick={() => router.push(`/signup?role=${role}`)}
                     className="font-semibold text-teal-600 hover:text-teal-700"
                   >
-                    {isSignUp ? "Sign in" : "Sign up"}
+                    Create account
                   </button>
                 </div>
 

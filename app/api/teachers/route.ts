@@ -1,0 +1,60 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { firstName, lastName, email, school, subject } = body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check if teacher already exists
+    const existingTeacher = await prisma.teacher.findUnique({
+      where: { email },
+    });
+
+    if (existingTeacher) {
+      return NextResponse.json(
+        { error: "Teacher with this email already exists" },
+        { status: 409 }
+      );
+    }
+
+    // Create or connect to school
+    let schoolRecord = null;
+    if (school) {
+      schoolRecord = await prisma.school.upsert({
+        where: { name: school },
+        update: {},
+        create: { name: school },
+      });
+    }
+
+    // Create teacher
+    const teacher = await prisma.teacher.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        schoolId: schoolRecord?.id,
+      },
+    });
+
+    return NextResponse.json(
+      { success: true, teacher },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating teacher:", error);
+    return NextResponse.json(
+      { error: "Failed to create teacher" },
+      { status: 500 }
+    );
+  }
+}
