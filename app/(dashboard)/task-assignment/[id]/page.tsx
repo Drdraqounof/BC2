@@ -4,6 +4,21 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { mockTasks, type TaskRecord, type Comment, type Rating, type Evidence } from "../../../dashboard-data";
 
+const RATING_CATEGORIES = [
+  "Accuracy",
+  "Completeness",
+  "Clarity",
+  "Effort",
+  "Organization",
+  "Creativity",
+  "Participation",
+  "Collaboration",
+  "Problem-solving",
+  "Critical thinking",
+  "Communication",
+  "Presentation",
+];
+
 export default function TaskDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -13,6 +28,7 @@ export default function TaskDetailPage() {
 
   const [newCommentText, setNewCommentText] = useState("");
   const [newRatingCategory, setNewRatingCategory] = useState("");
+  const [showRatingCategories, setShowRatingCategories] = useState(false);
   const [newRatingValue, setNewRatingValue] = useState(5);
   const [newEvidenceTitle, setNewEvidenceTitle] = useState("");
   const [newEvidenceUrl, setNewEvidenceUrl] = useState("");
@@ -21,6 +37,15 @@ export default function TaskDetailPage() {
     LOW: "bg-[var(--signal-green)]",
     MEDIUM: "bg-[var(--signal-gold)]",
     HIGH: "bg-[var(--signal-red)]",
+  };
+
+  const filteredCategories = RATING_CATEGORIES.filter((cat) =>
+    cat.toLowerCase().includes(newRatingCategory.toLowerCase()),
+  );
+
+  const handleSelectCategory = (category: string) => {
+    setNewRatingCategory(category);
+    setShowRatingCategories(false);
   };
 
   if (!task) {
@@ -309,12 +334,33 @@ export default function TaskDetailPage() {
             )}
           </div>
           <div className="mt-4 space-y-2 rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-4">
-            <input
-              value={newRatingCategory}
-              onChange={(e) => setNewRatingCategory(e.target.value)}
-              placeholder="Category (e.g., Accuracy)"
-              className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--signal-blue)]"
-            />
+            <div className="relative">
+              <input
+                value={newRatingCategory}
+                onChange={(e) => {
+                  setNewRatingCategory(e.target.value);
+                  setShowRatingCategories(true);
+                }}
+                onFocus={() => setShowRatingCategories(true)}
+                onBlur={() => setTimeout(() => setShowRatingCategories(false), 150)}
+                placeholder="Category (e.g., Accuracy)"
+                className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+              />
+              {showRatingCategories && filteredCategories.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 z-10 rounded-xl border border-[var(--border)] bg-white shadow-lg">
+                  {filteredCategories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => handleSelectCategory(category)}
+                      className="w-full px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--panel)] transition first:rounded-t-xl last:rounded-b-xl"
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
               Rating (1-10)
               <input
