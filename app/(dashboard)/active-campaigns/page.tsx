@@ -51,6 +51,17 @@ function getEmptyForm(): CampaignFormState {
   };
 }
 
+function getFieldHighlight(isEmpty: boolean): string {
+  return isEmpty ? "bg-amber-50/50 border-amber-200" : "";
+}
+
+function isFieldEmpty(field: string | string[]): boolean {
+  if (Array.isArray(field)) {
+    return field.length === 0;
+  }
+  return field.trim() === "";
+}
+
 export default function ActiveCampaignsPage() {
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>(activeCampaigns);
   const [form, setForm] = useState<CampaignFormState>(getEmptyForm);
@@ -58,6 +69,8 @@ export default function ActiveCampaignsPage() {
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isStudentPickerOpen, setIsStudentPickerOpen] = useState(false);
   const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showErrorNotification, setShowErrorNotification] = useState(false);
 
   const visibleCampaigns = useMemo(
     () => campaigns.filter((campaign) => !campaign.archived),
@@ -81,6 +94,7 @@ export default function ActiveCampaignsPage() {
 
   function handleFieldChange<K extends keyof CampaignFormState>(field: K, value: CampaignFormState[K]) {
     setForm((current) => ({ ...current, [field]: value }));
+    setShowErrorNotification(false);
   }
 
   function resetForm() {
@@ -90,12 +104,28 @@ export default function ActiveCampaignsPage() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const errors: string[] = [];
     const title = form.title.trim();
     const description = form.description.trim();
     const goal = form.goal.trim();
     const selectedStudents = form.selectedStudents;
 
-    if (!title || !description || !goal || selectedStudents.length === 0) {
+    if (!title) {
+      errors.push("Campaign title is required");
+    }
+    if (selectedStudents.length === 0) {
+      errors.push("Student segment is required - please select at least one student");
+    }
+    if (!description) {
+      errors.push("Campaign details are required");
+    }
+    if (!goal) {
+      errors.push("Goal is required");
+    }
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setShowErrorNotification(true);
       return;
     }
 
@@ -118,6 +148,8 @@ export default function ActiveCampaignsPage() {
         ),
       );
       setIsEditingDetails(false);
+      setValidationErrors([]);
+      setShowErrorNotification(false);
       return;
     }
 
@@ -139,6 +171,8 @@ export default function ActiveCampaignsPage() {
     ]);
 
     resetForm();
+    setValidationErrors([]);
+    setShowErrorNotification(false);
   }
 
   function openCampaignDetails(campaign: CampaignRecord, editMode = false) {
@@ -243,13 +277,46 @@ export default function ActiveCampaignsPage() {
           </div>
         </div>
 
+        {showErrorNotification && validationErrors.length > 0 && (
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 h-5 w-5 flex-shrink-0 rounded-full bg-[var(--signal-red)] flex items-center justify-center">
+                <span className="text-xs font-bold text-white">!</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-[var(--signal-red)]">
+                  Please complete the following to create your campaign:
+                </h3>
+                <ul className="mt-2 space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <li key={index} className="text-sm text-red-700">
+                      • {error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowErrorNotification(false)}
+                className="mt-0.5 flex-shrink-0 text-red-500 hover:text-red-700"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
             Campaign title
             <input
               value={form.title}
               onChange={(event) => handleFieldChange("title", event.target.value)}
-              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+              className={`rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)] ${
+                isFieldEmpty(form.title)
+                  ? "border-red-200 bg-red-50/50"
+                  : "border-green-200 bg-green-50/50"
+              }`}
               placeholder="Attendance recovery sprint"
             />
           </label>
@@ -259,7 +326,11 @@ export default function ActiveCampaignsPage() {
             <button
               type="button"
               onClick={() => setIsStudentPickerOpen(true)}
-              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-left text-sm transition hover:border-[var(--signal-blue)]"
+              className={`rounded-2xl border px-4 py-3 text-left text-sm transition hover:border-[var(--signal-blue)] ${
+                isFieldEmpty(form.selectedStudents)
+                  ? "border-red-200 bg-red-50/50"
+                  : "border-green-200 bg-green-50/50"
+              }`}
             >
               <span className="block font-medium text-[var(--foreground)]">
                 {formatStudentSegment(form.selectedStudents)}
@@ -275,7 +346,11 @@ export default function ActiveCampaignsPage() {
             <textarea
               value={form.description}
               onChange={(event) => handleFieldChange("description", event.target.value)}
-              className="min-h-28 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+              className={`min-h-28 rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)] ${
+                isFieldEmpty(form.description)
+                  ? "border-red-200 bg-red-50/50"
+                  : "border-green-200 bg-green-50/50"
+              }`}
               placeholder="Describe what this intervention is solving and the teacher action it supports."
             />
           </label>
@@ -285,7 +360,11 @@ export default function ActiveCampaignsPage() {
             <input
               value={form.goal}
               onChange={(event) => handleFieldChange("goal", event.target.value)}
-              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+              className={`rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)] ${
+                isFieldEmpty(form.goal)
+                  ? "border-red-200 bg-red-50/50"
+                  : "border-green-200 bg-green-50/50"
+              }`}
               placeholder="Raise weekly attendance to 95%"
             />
           </label>

@@ -56,7 +56,7 @@ export default function TaskAssignmentPage() {
     return tasks.filter((task) => {
       // Filter by student
       if (filterStudentId !== "all") {
-        if (!task.selectedStudents.includes(filterStudentId)) {
+        if (!task.selectedStudents || !task.selectedStudents.includes(filterStudentId)) {
           return false;
         }
       }
@@ -434,7 +434,7 @@ export default function TaskAssignmentPage() {
             </div>
           ) : (
             filteredTasks.map((task) => (
-              <Link key={task.id} href={`/dashboard/task-assignment/${task.id}`}>
+              <Link key={task.id} href={`/task-assignment/${task.id}`}>
                 <article className="cursor-pointer rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] transition hover:border-[var(--signal-blue)]">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">

@@ -185,6 +185,7 @@ export type TaskRecord = {
   creatorId: string;
   studentCount: number;
   completedCount: number;
+  selectedStudents?: string[];
   status: "pending" | "in-progress" | "completed" | "revision-submitted";
 };
 
@@ -217,6 +218,7 @@ export const mockTasks: TaskRecord[] = [
     creatorId: "teacher-1",
     studentCount: 3,
     completedCount: 1,
+    selectedStudents: ["Maya Thompson", "Ava Patel", "Noah Rivera"],
     status: "in-progress",
   },
   {
@@ -231,6 +233,7 @@ export const mockTasks: TaskRecord[] = [
     creatorId: "teacher-1",
     studentCount: 2,
     completedCount: 1,
+    selectedStudents: ["Noah Rivera", "Maya Thompson"],
     status: "in-progress",
   },
   {
@@ -248,6 +251,7 @@ export const mockTasks: TaskRecord[] = [
     creatorId: "teacher-1",
     studentCount: 5,
     completedCount: 5,
+    selectedStudents: ["Eli Johnson", "Ava Patel"],
     status: "completed",
   },
   {
@@ -261,6 +265,7 @@ export const mockTasks: TaskRecord[] = [
     creatorId: "teacher-1",
     studentCount: 8,
     completedCount: 3,
+    selectedStudents: ["Maya Thompson", "Noah Rivera", "Eli Johnson", "Ava Patel"],
     status: "revision-submitted",
   },
 ];

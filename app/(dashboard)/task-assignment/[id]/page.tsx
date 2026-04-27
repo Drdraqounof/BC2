@@ -1,19 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { mockTasks, type TaskRecord, type Comment, type Rating, type Evidence } from "../../../dashboard-data";
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
-export default function TaskDetailPage({ params }: Params) {
+export default function TaskDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const taskId = params.id as string;
   const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
-  const task = tasks.find((t) => t.id === params.id);
+  const task = tasks.find((t) => t.id === taskId);
 
   const [newCommentText, setNewCommentText] = useState("");
   const [newRatingCategory, setNewRatingCategory] = useState("");
