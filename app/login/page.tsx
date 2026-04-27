@@ -2,19 +2,21 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useTransition } from "react";
+import { useToast, Toast } from "../../components/toast";
 
 function LoginContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const role = searchParams.get("role") || "teacher";
+  const [isPending, startTransition] = useTransition();
+  const { toasts, addToast, removeToast } = useToast();
   
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -23,14 +25,20 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
 
     try {
-      // Handle login - for now just redirect to dashboard
-      router.push("/dashboard");
+      // Wrap router.push in startTransition to prevent router initialization errors
+      startTransition(() => {
+        router.push("/active-campaigns");
+      });
+      
+      // Show success notification
+      addToast("Sign in successful! Redirecting to dashboard...", "success", 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred during sign in";
+      addToast(errorMessage, "error", 5000);
+      console.error("Login error:", err);
       setIsLoading(false);
     }
   };
@@ -70,6 +78,7 @@ function LoginContent() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-stone-50 via-amber-50 to-teal-50 text-slate-900">
+      <Toast toasts={toasts} removeToast={removeToast} />
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-teal-100 opacity-25 mix-blend-multiply blur-3xl" />
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-amber-100 opacity-25 mix-blend-multiply blur-3xl" />
@@ -127,12 +136,6 @@ function LoginContent() {
                   </h2>
                 </div>
 
-                {error && (
-                  <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-slate-700">
@@ -165,10 +168,10 @@ function LoginContent() {
                   </label>
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || isPending}
                     className={`w-full rounded-2xl px-5 py-3 text-center text-sm font-semibold text-white transition-colors ${config.buttonColor} disabled:opacity-50`}
                   >
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    {isLoading || isPending ? "Signing in..." : "Sign In"}
                   </button>
                 </form>
 
@@ -176,7 +179,11 @@ function LoginContent() {
                   Don't have a password?{" "}
                   <button
                     type="button"
-                    onClick={() => router.push(`/signup?role=${role}`)}
+                    onClick={() => {
+                      startTransition(() => {
+                        router.push(`/signup?role=${role}`);
+                      });
+                    }}
                     className="font-semibold text-teal-600 hover:text-teal-700"
                   >
                     Create account
