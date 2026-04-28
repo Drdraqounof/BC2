@@ -138,9 +138,6 @@ export default function TaskAssignmentPage() {
 
   function deleteTask(id: string) {
     setTasks((current) => current.filter((task) => task.id !== id));
-    if (selectedTaskId === id) {
-      setSelectedTaskId(null);
-    }
   }
 
   function markTaskComplete(taskId: string) {
@@ -450,15 +447,24 @@ export default function TaskAssignmentPage() {
                       )}
                     </div>
                     {task.description && <p className="mt-2 text-sm text-[var(--muted)]">{task.description}</p>}
-                    <div className="mt-3 flex items-center gap-4">
-                      <span className="text-sm font-medium text-[var(--foreground)]">
-                        {task.completedCount} of {task.studentCount} completed
-                      </span>
-                      {task.dueDate && (
-                        <span className="text-sm text-[var(--muted)]">
-                          Due: {new Date(task.dueDate).toLocaleDateString()}
+                    <div className="mt-3 flex flex-col gap-3">
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-[var(--foreground)]">
+                          {task.completedCount} of {task.studentCount} submitted
                         </span>
-                      )}
+                        {task.dueDate && (
+                          <span className="text-sm text-[var(--muted)]">
+                            Due: {new Date(task.dueDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="w-full h-2 bg-[var(--border)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--signal-green)] transition-all"
+                          style={{ width: `${(task.completedCount / task.studentCount) * 100}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">

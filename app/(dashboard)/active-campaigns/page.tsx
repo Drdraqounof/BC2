@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { activeCampaigns, studentList, mockTasks, type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
 
@@ -71,6 +71,39 @@ export default function ActiveCampaignsPage() {
   const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showErrorNotification, setShowErrorNotification] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load campaigns from API on mount
+  useEffect(() => {
+    const loadCampaigns = async () => {
+      try {
+        const response = await fetch('/api/campaigns');
+        if (response.ok) {
+          const data = await response.json();
+          // Transform API response to match CampaignRecord format
+          const transformedCampaigns = data.map((campaign: any) => ({
+            id: campaign.id,
+            title: campaign.title,
+            description: campaign.description || "",
+            goal: campaign.goal || "",
+            students: `${campaign.studentLinks?.length || 0} students`,
+            selectedStudents: campaign.studentLinks?.map((link: any) => link.student?.firstName + " " + link.student?.lastName).filter(Boolean) || [],
+            goalType: "Custom" as CampaignGoalType,
+            status: campaign.status as CampaignStatus,
+            progress: campaign.progressSnapshot || 0,
+            accent: "bg-[var(--signal-blue)]",
+            archived: false,
+          }));
+          setCampaigns(transformedCampaigns.length > 0 ? transformedCampaigns : activeCampaigns);
+        }
+      } catch (error) {
+        console.error('Failed to load campaigns:', error);
+        // Fall back to mock data
+      }
+    };
+
+    loadCampaigns();
+  }, []);
 
   const visibleCampaigns = useMemo(
     () => campaigns.filter((campaign) => !campaign.archived),
@@ -129,50 +162,115 @@ export default function ActiveCampaignsPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
+    // Handle campaign update (PATCH)
     if (selectedCampaignId && isEditingDetails) {
-      setCampaigns((current) =>
-        current.map((campaign) =>
-          campaign.id === selectedCampaignId
-            ? {
-                ...campaign,
-                title,
-                description,
-                goal,
-                students: formatStudentSegment(selectedStudents),
-                selectedStudents,
-                goalType: form.goalType,
-                status: form.status,
-                accent: accentByGoalType[form.goalType],
-              }
-            : campaign,
-        ),
-      );
-      setIsEditingDetails(false);
-      setValidationErrors([]);
-      setShowErrorNotification(false);
+      const updateCampaign = async () => {
+        try {
+          const response = await fetch(`/api/campaigns/${selectedCampaignId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              description,
+              goal,
+              status: form.status,
+              studentIds: selectedStudents, // Send student names as IDs for now
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update campaign');
+          }
+
+          // Update local state
+          setCampaigns((current) =>
+            current.map((campaign) =>
+              campaign.id === selectedCampaignId
+                ? {
+                    ...campaign,
+                    title,
+                    description,
+                    goal,
+                    students: formatStudentSegment(selectedStudents),
+                    selectedStudents,
+                    goalType: form.goalType,
+                    status: form.status,
+                    accent: accentByGoalType[form.goalType],
+                  }
+                : campaign,
+            ),
+          );
+          
+          setIsEditingDetails(false);
+          setValidationErrors([]);
+          setShowErrorNotification(false);
+          setIsSubmitting(false);
+        } catch (error) {
+          console.error('Error updating campaign:', error);
+          setValidationErrors(["Failed to update campaign. Please try again."]);
+          setShowErrorNotification(true);
+          setIsSubmitting(false);
+        }
+      };
+
+      updateCampaign();
       return;
     }
 
-    setCampaigns((current) => [
-      {
-        id: `campaign-${crypto.randomUUID()}`,
-        title,
-        description,
-        goal,
-        students: formatStudentSegment(selectedStudents),
-        selectedStudents,
-        goalType: form.goalType,
-        status: form.status,
-        progress: 0,
-        accent: accentByGoalType[form.goalType],
-        archived: false,
-      },
-      ...current,
-    ]);
+    // Handle campaign creation (POST)
+    const createCampaign = async () => {
+      try {
+        const response = await fetch('/api/campaigns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            description,
+            goal,
+            status: form.status,
+            studentIds: selectedStudents, // Send student names as IDs for now
+          })
+        });
 
-    resetForm();
-    setValidationErrors([]);
-    setShowErrorNotification(false);
+        if (!response.ok) {
+          throw new Error('Failed to create campaign');
+        }
+
+        const newCampaign = await response.json();
+
+        // Update local state with new campaign
+        setCampaigns((current) => [
+          {
+            id: newCampaign.id,
+            title,
+            description,
+            goal,
+            students: formatStudentSegment(selectedStudents),
+            selectedStudents,
+            goalType: form.goalType,
+            status: form.status,
+            progress: 0,
+            accent: accentByGoalType[form.goalType],
+            archived: false,
+          },
+          ...current,
+        ]);
+
+        resetForm();
+        setValidationErrors([]);
+        setShowErrorNotification(false);
+        setIsSubmitting(false);
+      } catch (error) {
+        console.error('Error creating campaign:', error);
+        setValidationErrors(["Failed to create campaign. Please try again."]);
+        setShowErrorNotification(true);
+        setIsSubmitting(false);
+      }
+    };
+
+    createCampaign();
   }
 
   function openCampaignDetails(campaign: CampaignRecord, editMode = false) {
@@ -195,20 +293,35 @@ export default function ActiveCampaignsPage() {
   }
 
   function completeCampaign(id: string) {
-    setCampaigns((current) =>
-      current.map((campaign) =>
-        campaign.id === id
-          ? {
-              ...campaign,
-              status: "Completed",
-              progress: 100,
-            }
-          : campaign,
-      ),
-    );
+    const updateStatus = async () => {
+      try {
+        await fetch(`/api/campaigns/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'COMPLETED' })
+        });
+
+        setCampaigns((current) =>
+          current.map((campaign) =>
+            campaign.id === id
+              ? {
+                  ...campaign,
+                  status: "Completed" as CampaignStatus,
+                  progress: 100,
+                }
+              : campaign,
+          ),
+        );
+      } catch (error) {
+        console.error('Error completing campaign:', error);
+      }
+    };
+
+    updateStatus();
   }
 
   function archiveCampaign(id: string) {
+    // Archive is a local UI state, not persisted to database yet
     setCampaigns((current) =>
       current.map((campaign) =>
         campaign.id === id
@@ -226,6 +339,7 @@ export default function ActiveCampaignsPage() {
   }
 
   function restoreCampaign(id: string) {
+    // Restore is a local UI state, not persisted to database yet
     setCampaigns((current) =>
       current.map((campaign) =>
         campaign.id === id
@@ -402,9 +516,10 @@ export default function ActiveCampaignsPage() {
           <div className="flex items-end">
             <button
               type="submit"
-              className="w-full rounded-2xl bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create campaign
+              {isSubmitting ? "Creating..." : "Create campaign"}
             </button>
           </div>
         </form>
@@ -793,14 +908,16 @@ export default function ActiveCampaignsPage() {
                       <div className="flex flex-wrap gap-3 pt-2">
                         <button
                           type="submit"
-                          className="rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92"
+                          disabled={isSubmitting}
+                          className="rounded-full bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Save changes
+                          {isSubmitting ? "Saving..." : "Save changes"}
                         </button>
                         <button
                           type="button"
                           onClick={() => setIsEditingDetails(false)}
-                          className="rounded-full border border-[var(--border)] px-5 py-3 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                          disabled={isSubmitting}
+                          className="rounded-full border border-[var(--border)] px-5 py-3 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Stop editing
                         </button>
