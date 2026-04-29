@@ -146,6 +146,12 @@ export default function ActiveCampaignsPage() {
     if (!title) {
       errors.push("Campaign title is required");
     }
+    
+    // Check for duplicate title (when creating new campaigns)
+    if (!selectedCampaignId && campaigns.some(c => c.title.toLowerCase() === title.toLowerCase())) {
+      errors.push("A campaign with this title already exists");
+    }
+    
     if (selectedStudents.length === 0) {
       errors.push("Student segment is required - please select at least one student");
     }
@@ -222,20 +228,48 @@ export default function ActiveCampaignsPage() {
     // Handle campaign creation (POST)
     const createCampaign = async () => {
       try {
+        const statusMap: Record<string, string> = {
+          "Draft": "DRAFT",
+          "In Progress": "IN_PROGRESS",
+          "Needs Follow-Up": "NEEDS_FOLLOW_UP",
+          "On Track": "ON_TRACK",
+          "Completed": "COMPLETED"
+        };
+        
         const response = await fetch('/api/campaigns', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title,
-            description,
-            goal,
-            status: form.status,
-            studentIds: selectedStudents, // Send student names as IDs for now
+            title: form.title,
+            description: form.description,
+            goal: form.goal,
+            status: statusMap[form.status] || form.status,
+            studentIds: form.selectedStudents,
           })
         });
 
         if (!response.ok) {
-          throw new Error('Failed to create campaign');
+          let errorData = {};
+          const contentType = response.headers.get('content-type');
+          const responseText = await response.text();
+          console.error('Campaign creation failed:', { 
+            status: response.status, 
+            contentType,
+            responseText,
+            body: form.selectedStudents.length > 0 ? 'Students selected' : 'No students'
+          });
+          
+          if (contentType?.includes('application/json')) {
+            try {
+              errorData = JSON.parse(responseText);
+            } catch {
+              errorData = { error: responseText };
+            }
+          } else {
+            errorData = { error: responseText || 'Server error' };
+          }
+          
+          throw new Error(errorData.error || `Failed to create campaign (${response.status})`);
         }
 
         const newCampaign = await response.json();
@@ -244,11 +278,11 @@ export default function ActiveCampaignsPage() {
         setCampaigns((current) => [
           {
             id: newCampaign.id,
-            title,
-            description,
-            goal,
-            students: formatStudentSegment(selectedStudents),
-            selectedStudents,
+            title: form.title,
+            description: form.description,
+            goal: form.goal,
+            students: formatStudentSegment(form.selectedStudents),
+            selectedStudents: form.selectedStudents,
             goalType: form.goalType,
             status: form.status,
             progress: 0,
@@ -350,6 +384,51 @@ export default function ActiveCampaignsPage() {
           : campaign,
       ),
     );
+  }
+
+  function deleteCampaign(id: string, campaignName: string) {
+    if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+      return;
+    }
+
+    const performDelete = async () => {
+      try {
+        const response = await fetch(`/api/campaigns/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage = errorData?.error || 'Failed to delete campaign';
+          throw new Error(errorMessage);
+        }
+
+        setCampaigns((current) =>
+          current.filter((campaign) => campaign.id !== id),
+        );
+
+        if (selectedCampaignId === id) {
+          closeCampaignDetails();
+        }
+
+        // Show success notification
+        setValidationErrors([`"${campaignName}" campaign has been deleted`]);
+        setShowErrorNotification(true);
+        
+        // Clear notification after 3 seconds
+        setTimeout(() => {
+          setShowErrorNotification(false);
+        }, 3000);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to delete campaign';
+        console.error('Error deleting campaign:', errorMessage);
+        setValidationErrors([errorMessage]);
+        setShowErrorNotification(true);
+      }
+    };
+
+    performDelete();
   }
 
   function toggleStudentSelection(studentName: string) {
@@ -691,13 +770,22 @@ export default function ActiveCampaignsPage() {
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {!isEditingDetails ? (
-                    <button
-                      type="button"
-                      onClick={() => openCampaignDetails(selectedCampaign, true)}
-                      className="rounded-full border border-[var(--border)] px-5 py-3 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
-                    >
-                      Edit campaign
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openCampaignDetails(selectedCampaign, true)}
+                        className="rounded-full border border-[var(--border)] px-5 py-3 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                      >
+                        Edit campaign
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteCampaign(selectedCampaign.id, selectedCampaign.title)}
+                        className="rounded-full border border-[var(--signal-red)] px-5 py-3 text-sm font-medium text-[var(--signal-red)] transition hover:bg-[var(--signal-red)]/10"
+                      >
+                        Delete campaign
+                      </button>
+                    </>
                   ) : null}
                   <button
                     type="button"

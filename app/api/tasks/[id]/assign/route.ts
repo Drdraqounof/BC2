@@ -4,9 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // POST /api/tasks/[id]/assign - Assign task to students
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const { studentIds = [] } = body;
 
@@ -19,7 +20,7 @@ export async function POST(
 
     // Check if task exists
     const task = await prisma.task.findUnique({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!task) {
@@ -31,7 +32,7 @@ export async function POST(
 
     // Get existing assignments
     const existingAssignments = await prisma.taskAssignment.findMany({
-      where: { taskId: params.id },
+      where: { taskId: id },
       select: { studentId: true }
     });
 
@@ -43,7 +44,7 @@ export async function POST(
     if (newStudentIds.length > 0) {
       await prisma.taskAssignment.createMany({
         data: newStudentIds.map(studentId => ({
-          taskId: params.id,
+          taskId: id,
           studentId
         }))
       });
@@ -51,7 +52,7 @@ export async function POST(
 
     // Fetch updated task
     const updatedTask = await prisma.task.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         creator: {
           select: { id: true, firstName: true, lastName: true, email: true }

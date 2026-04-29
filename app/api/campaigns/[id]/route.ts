@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // PATCH /api/campaigns/[id] - Update a campaign
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const {
       title,
@@ -153,10 +153,21 @@ export async function PATCH(
 // DELETE /api/campaigns/[id] - Delete a campaign
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
+
+    if (!id) {
+      console.error('Campaign ID is missing or undefined');
+      return NextResponse.json(
+        { error: 'Campaign ID is required' },
+        { status: 400 }
+      );
+    }
+
+    console.log('Deleting campaign with ID:', id);
 
     // Delete related data first (cascade delete)
     await prisma.campaignStudent.deleteMany({
@@ -167,6 +178,14 @@ export async function DELETE(
       where: { campaignId: id }
     });
 
+    await prisma.promptTemplate.deleteMany({
+      where: { campaignId: id }
+    });
+
+    await prisma.activityLog.deleteMany({
+      where: { campaignId: id }
+    });
+
     // Delete the campaign
     await prisma.campaign.delete({
       where: { id }
@@ -174,9 +193,10 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Campaign deleted successfully' });
   } catch (error) {
-    console.error('Error deleting campaign:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error deleting campaign:', errorMessage);
     return NextResponse.json(
-      { error: 'Failed to delete campaign' },
+      { error: `Failed to delete campaign: ${errorMessage}` },
       { status: 500 }
     );
   }

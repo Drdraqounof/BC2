@@ -4,9 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // PATCH /api/tasks/[id]/complete - Mark task as complete/incomplete for a student
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const { studentId, grade, isComplete = true } = body;
 
@@ -32,7 +33,7 @@ export async function PATCH(
     const assignment = await prisma.taskAssignment.update({
       where: {
         taskId_studentId: {
-          taskId: params.id,
+          taskId: id,
           studentId
         }
       },

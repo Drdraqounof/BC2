@@ -4,11 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/tasks/[id] - Fetch a single task
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const task = await prisma.task.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         creator: {
           select: { id: true, firstName: true, lastName: true, email: true }
@@ -46,9 +47,10 @@ export async function GET(
 // PATCH /api/tasks/[id] - Update a task
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const {
       title,
@@ -71,7 +73,7 @@ export async function PATCH(
     if (campaignId !== undefined) updateData.campaignId = campaignId;
 
     const task = await prisma.task.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         creator: {

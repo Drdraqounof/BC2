@@ -175,8 +175,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(campaign, { status: 201 });
   } catch (error) {
     console.error('Error creating campaign:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to create campaign' },
+      { error: `Failed to create campaign: ${errorMessage}` },
       { status: 500 }
     );
   }
