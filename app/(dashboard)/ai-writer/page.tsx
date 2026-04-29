@@ -57,6 +57,8 @@ export default function AiWriterPage() {
   const [generatedEmails, setGeneratedEmails] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
 
   // Load campaigns and tasks on mount
   useEffect(() => {
@@ -241,12 +243,34 @@ export default function AiWriterPage() {
       }
 
       setGeneratedEmails(emailsData);
+      setPreviewModalOpen(true);
+      setCurrentPreviewIndex(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate emails");
       console.error("Error generating emails:", err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const studentList = Array.from(selectedStudents);
+  const currentStudent = studentList[currentPreviewIndex];
+  const currentEmail = currentStudent ? generatedEmails[currentStudent] : "";
+
+  const handleNextEmail = () => {
+    if (currentPreviewIndex < studentList.length - 1) {
+      setCurrentPreviewIndex(currentPreviewIndex + 1);
+    }
+  };
+
+  const handlePrevEmail = () => {
+    if (currentPreviewIndex > 0) {
+      setCurrentPreviewIndex(currentPreviewIndex - 1);
+    }
+  };
+
+  const handleClosePreview = () => {
+    setPreviewModalOpen(false);
   };
 
   const handleCopyEmail = (studentName: string) => {
@@ -397,6 +421,68 @@ export default function AiWriterPage() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Email Preview Modal */}
+      {previewModalOpen && currentEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur">
+          <div className="w-full max-w-2xl rounded-[30px] border border-[var(--border)] bg-white p-8 shadow-2xl">
+            {/* Header */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Review Email</p>
+                <h2 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{currentStudent}</h2>
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  Email {currentPreviewIndex + 1} of {studentList.length}
+                </p>
+              </div>
+              <button
+                onClick={handleClosePreview}
+                className="text-2xl font-semibold text-[var(--muted)] transition hover:text-[var(--foreground)]"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Email Content */}
+            <div className="mb-6 max-h-96 overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-6">
+              <div className="whitespace-pre-wrap text-sm leading-7 text-[var(--foreground)]">
+                {currentEmail}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between gap-3">
+              <button
+                onClick={handlePrevEmail}
+                disabled={currentPreviewIndex === 0}
+                className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Previous
+              </button>
+
+              <button
+                onClick={() => handleCopyEmail(currentStudent)}
+                className="rounded-full bg-[var(--signal-blue)] px-6 py-2 text-sm font-semibold text-black transition hover:opacity-90"
+              >
+                Copy Email
+              </button>
+
+              <button
+                onClick={handleNextEmail}
+                disabled={currentPreviewIndex === studentList.length - 1}
+                className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            </div>
+
+            {/* Footer Info */}
+            <p className="mt-4 text-center text-xs text-[var(--muted)]">
+              Review all emails to verify the AI captured your prompt and student information
+            </p>
+          </div>
+        </div>
       )}
     </main>
   );
