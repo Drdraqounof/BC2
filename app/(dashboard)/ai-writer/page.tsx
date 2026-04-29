@@ -109,13 +109,8 @@ export default function AiWriterPage() {
   };
 
   const getAllAvailableStudents = () => {
-    const campaign = getSelectedCampaign();
-    if (!campaign) return [];
-    
-    // Map campaign student names to full student objects
-    return campaign.selectedStudents
-      .map(name => getStudentInfo(name))
-      .filter((s): s is Student => !!s);
+    // Show all students from database, not just campaign students
+    return allStudents;
   };
 
   const toggleStudentSelection = (studentName: string) => {
@@ -310,7 +305,7 @@ export default function AiWriterPage() {
           </label>
         )}
 
-        {selectedCampaignId && (
+        {allStudents.length > 0 && (
           <div className="mt-4 flex flex-col gap-2">
             <p className="text-sm font-medium text-[var(--foreground)]">Select Students</p>
             <div className="rounded-2xl border border-[var(--border)] bg-white p-4 space-y-2 max-h-48 overflow-y-auto">
@@ -335,7 +330,7 @@ export default function AiWriterPage() {
                   );
                 })
               ) : (
-                <p className="text-sm text-[var(--muted)]">No students in this campaign</p>
+                <p className="text-sm text-[var(--muted)]">No students available</p>
               )}
             </div>
           </div>
