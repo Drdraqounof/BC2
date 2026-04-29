@@ -19,6 +19,15 @@ type Task = {
   campaignId?: string;
 };
 
+type Student = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  gradeLabel?: string | null;
+  classroomCode?: string | null;
+};
+
 type EmailType = 
   | "campaign_launch" 
   | "assignment_notification" 
@@ -39,6 +48,7 @@ const emailTypeLabels: Record<EmailType, string> = {
 export default function AiWriterPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
@@ -52,6 +62,13 @@ export default function AiWriterPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Fetch real students from API
+        const studentsResponse = await fetch("/api/students");
+        if (studentsResponse.ok) {
+          const studentData = await studentsResponse.json();
+          setAllStudents(studentData);
+        }
+
         // For now, use mock data from dashboard
         // In production, fetch from APIs
         const mockCampaigns: Campaign[] = [
@@ -87,9 +104,18 @@ export default function AiWriterPage() {
     return tasks.find((t) => t.id === selectedTaskId);
   };
 
+  const getStudentInfo = (studentName: string): Student | undefined => {
+    return allStudents.find(s => `${s.firstName} ${s.lastName}` === studentName);
+  };
+
   const getAllAvailableStudents = () => {
     const campaign = getSelectedCampaign();
-    return campaign?.selectedStudents || [];
+    if (!campaign) return [];
+    
+    // Map campaign student names to full student objects
+    return campaign.selectedStudents
+      .map(name => getStudentInfo(name))
+      .filter((s): s is Student => !!s);
   };
 
   const toggleStudentSelection = (studentName: string) => {
@@ -131,6 +157,16 @@ export default function AiWriterPage() {
 
   const buildEmailPrompt = (studentName: string): string => {
     const context = buildContext();
+    const studentInfo = getStudentInfo(studentName);
+    
+    let studentContext = `\nStudent: ${studentName}`;
+    if (studentInfo?.gradeLabel) {
+      studentContext += `\nGrade Level: ${studentInfo.gradeLabel}`;
+    }
+    if (studentInfo?.email) {
+      studentContext += `\nEmail: ${studentInfo.email}`;
+    }
+    
     let basePrompt = "";
 
     switch (emailType) {
@@ -154,7 +190,7 @@ export default function AiWriterPage() {
         break;
     }
 
-    return `${context}\n\nBased on this context, please: ${basePrompt}\n\nMake it professional but friendly, and keep it under 150 words.`;
+    return `${context}${studentContext}\n\nBased on this context, please: ${basePrompt}\n\nMake it professional but friendly, personalized to their situation, and keep it under 150 words.`;
   };
 
   const handleGenerateEmails = async () => {
@@ -279,17 +315,25 @@ export default function AiWriterPage() {
             <p className="text-sm font-medium text-[var(--foreground)]">Select Students</p>
             <div className="rounded-2xl border border-[var(--border)] bg-white p-4 space-y-2 max-h-48 overflow-y-auto">
               {getAllAvailableStudents().length > 0 ? (
-                getAllAvailableStudents().map((studentName) => (
-                  <label key={studentName} className="flex items-center gap-3 cursor-pointer hover:bg-[var(--panel)] p-2 rounded-lg transition">
-                    <input
-                      type="checkbox"
-                      checked={selectedStudents.has(studentName)}
-                      onChange={() => toggleStudentSelection(studentName)}
-                      className="w-4 h-4 cursor-pointer"
-                    />
-                    <span className="text-sm text-[var(--foreground)]">{studentName}</span>
-                  </label>
-                ))
+                getAllAvailableStudents().map((student) => {
+                  const studentDisplayName = `${student.firstName} ${student.lastName}`;
+                  return (
+                    <label key={student.id} className="flex items-center gap-3 cursor-pointer hover:bg-[var(--panel)] p-2 rounded-lg transition">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudents.has(studentDisplayName)}
+                        onChange={() => toggleStudentSelection(studentDisplayName)}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                      <div className="flex flex-col flex-1">
+                        <span className="text-sm font-medium text-[var(--foreground)]">{studentDisplayName}</span>
+                        {student.gradeLabel && (
+                          <span className="text-xs text-[var(--muted)]">Grade: {student.gradeLabel}</span>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })
               ) : (
                 <p className="text-sm text-[var(--muted)]">No students in this campaign</p>
               )}
