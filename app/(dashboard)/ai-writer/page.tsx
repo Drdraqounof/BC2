@@ -125,6 +125,17 @@ export default function AiWriterPage() {
     });
   };
 
+  const toggleAllStudents = () => {
+    if (selectedStudents.size === allStudents.length) {
+      // All selected, clear all
+      setSelectedStudents(new Set());
+    } else {
+      // Not all selected, select all
+      const allStudentNames = allStudents.map(s => `${s.firstName} ${s.lastName}`);
+      setSelectedStudents(new Set(allStudentNames));
+    }
+  };
+
   const buildContext = () => {
     let context = "";
 
@@ -307,7 +318,16 @@ export default function AiWriterPage() {
 
         {allStudents.length > 0 && (
           <div className="mt-4 flex flex-col gap-2">
-            <p className="text-sm font-medium text-[var(--foreground)]">Select Students</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-[var(--foreground)]">Select Students</p>
+              <button
+                onClick={toggleAllStudents}
+                type="button"
+                className="text-xs font-semibold text-[var(--signal-blue)] transition hover:opacity-80"
+              >
+                {selectedStudents.size === allStudents.length ? "Clear all" : "Add all"}
+              </button>
+            </div>
             <div className="rounded-2xl border border-[var(--border)] bg-white p-4 space-y-2 max-h-48 overflow-y-auto">
               {getAllAvailableStudents().length > 0 ? (
                 getAllAvailableStudents().map((student) => {
