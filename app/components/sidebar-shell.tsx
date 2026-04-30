@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-const navigationItems = [
+const teacherNavigationItems = [
   { href: "/active-campaigns", label: "Active Campaigns", shortLabel: "AC" },
   { href: "/task-assignment", label: "Tasks", shortLabel: "TK" },
   { href: "/progress-tracking", label: "Progress Tracking", shortLabel: "PT" },
@@ -12,14 +12,34 @@ const navigationItems = [
   { href: "/ai-writer", label: "AI Writer", shortLabel: "AI" },
 ];
 
-export function SidebarShell({ children }: { children: React.ReactNode }) {
+type SidebarShellProps = {
+  children: React.ReactNode;
+  workspaceLabel?: string;
+  navigationItems?: Array<{ href: string; label: string; shortLabel: string }>;
+  logoutRole?: "teacher" | "student";
+  logoutStorageKeys?: string[];
+  systemNote?: string;
+};
+
+export function SidebarShell({
+  children,
+  workspaceLabel = "Teacher Workspace",
+  navigationItems = teacherNavigationItems,
+  logoutRole = "teacher",
+  logoutStorageKeys,
+  systemNote = "Campaigns turn signals into action, so every page keeps the next intervention visible.",
+}: SidebarShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const keysToClear = logoutStorageKeys ??
+    (logoutRole === "student"
+      ? ["edupanel.studentEmail"]
+      : ["edupanel.teacherEmail", "edupanel.studentEmail"]);
 
   const handleLogout = () => {
-    localStorage.removeItem("edupanel.teacherEmail");
-    router.push("/login?role=teacher");
+    keysToClear.forEach((key) => localStorage.removeItem(key));
+    router.push(`/login?role=${logoutRole}`);
   };
 
   return (
@@ -36,7 +56,7 @@ export function SidebarShell({ children }: { children: React.ReactNode }) {
           >
             <p className="text-xs uppercase tracking-[0.28em] text-white/55">EduPanel</p>
             <p className="mt-1 text-lg font-semibold tracking-[-0.03em]">
-              Teacher Workspace
+              {workspaceLabel}
             </p>
           </Link>
           <button
@@ -91,7 +111,7 @@ export function SidebarShell({ children }: { children: React.ReactNode }) {
             System note
           </p>
           <p className={`mt-2 text-sm leading-6 text-white/80 ${collapsed ? "hidden" : "block"}`}>
-            Campaigns turn signals into action, so every page keeps the next intervention visible.
+            {systemNote}
           </p>
         </div>
 

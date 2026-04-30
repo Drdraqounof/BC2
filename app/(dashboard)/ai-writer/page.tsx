@@ -66,6 +66,8 @@ export default function AiWriterPage() {
   const [generatedEmails, setGeneratedEmails] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [sendingStudent, setSendingStudent] = useState<string | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
 
@@ -262,6 +264,7 @@ export default function AiWriterPage() {
 
     setIsLoading(true);
     setError("");
+    setSuccessMessage("");
     setGeneratedEmails({});
 
     try {
@@ -331,6 +334,8 @@ export default function AiWriterPage() {
   const handleCopyEmail = (studentName: string) => {
     if (generatedEmails[studentName]) {
       navigator.clipboard.writeText(generatedEmails[studentName]);
+      setSuccessMessage(`Copied the draft body for ${studentName}.`);
+      setError("");
     }
   };
 
@@ -361,27 +366,55 @@ export default function AiWriterPage() {
     }
   };
 
-  const handleSendEmail = (studentName: string) => {
+  const handleSendEmail = async (studentName: string) => {
     const student = getStudentInfo(studentName);
 
     if (!student?.email) {
       setError(`No email address is available for ${studentName}.`);
+      setSuccessMessage("");
       return;
     }
 
     const draft = generatedEmails[studentName];
     if (!draft?.trim()) {
       setError(`The email draft for ${studentName} is empty.`);
+      setSuccessMessage("");
       return;
     }
 
-    setError("");
+    try {
+      setSendingStudent(studentName);
 
-    const mailtoHref = `mailto:${student.email}?subject=${encodeURIComponent(
-      getEmailSubject(studentName)
-    )}&body=${encodeURIComponent(draft)}`;
+      const response = await fetch("/api/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: student.email,
+          subject: getEmailSubject(studentName),
+          message: draft,
+          teacherName: teacherDisplayName,
+          teacherEmail: teacherProfile?.email || "",
+        }),
+      });
 
-    window.location.href = mailtoHref;
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.error === "string" && data.error.trim()
+            ? data.error
+            : `Failed to send the email for ${studentName}.`
+        );
+      }
+
+      setError("");
+      setSuccessMessage(`Email sent to ${studentName} at ${student.email}.`);
+    } catch (sendError) {
+      setSuccessMessage("");
+      setError(sendError instanceof Error ? sendError.message : `Failed to send the email for ${studentName}.`);
+    } finally {
+      setSendingStudent(null);
+    }
   };
 
   return (
@@ -494,6 +527,12 @@ export default function AiWriterPage() {
           </div>
         )}
 
+        {successMessage && (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+            <p className="text-sm text-emerald-700">{successMessage}</p>
+          </div>
+        )}
+
         <button
           onClick={handleGenerateEmails}
           disabled={isLoading || (!selectedCampaignId && !selectedTaskId) || selectedStudents.size === 0}
@@ -527,9 +566,10 @@ export default function AiWriterPage() {
                     </button>
                     <button
                       onClick={() => handleSendEmail(studentName)}
+                      disabled={sendingStudent === studentName}
                       className="rounded-full bg-[var(--signal-blue)] px-3 py-1 text-xs font-semibold text-black transition hover:opacity-90"
                     >
-                      Send Email
+                      {sendingStudent === studentName ? "Sending..." : "Send Email"}
                     </button>
                   </div>
                 </div>
@@ -594,9 +634,10 @@ export default function AiWriterPage() {
                 </button>
                 <button
                   onClick={() => handleSendEmail(currentStudent)}
+                  disabled={sendingStudent === currentStudent}
                   className="rounded-full bg-[var(--signal-blue)] px-6 py-2 text-sm font-semibold text-black transition hover:opacity-90"
                 >
-                  Send Email
+                  {sendingStudent === currentStudent ? "Sending..." : "Send Email"}
                 </button>
               </div>
 
@@ -611,7 +652,7 @@ export default function AiWriterPage() {
 
             {/* Footer Info */}
             <p className="mt-4 text-center text-xs text-[var(--muted)]">
-              Review, edit, and send each draft through your default mail app.
+              Review each draft, then send it directly through the configured email server.
             </p>
           </div>
         </div>

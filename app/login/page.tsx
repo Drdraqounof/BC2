@@ -28,19 +28,23 @@ function LoginContent() {
     setIsLoading(true);
 
     try {
+      const destination = role === "student" ? "/student" : "/active-campaigns";
+
       if (role === "teacher") {
         localStorage.setItem("edupanel.teacherEmail", formData.email.trim());
+        localStorage.removeItem("edupanel.studentEmail");
       } else {
         localStorage.removeItem("edupanel.teacherEmail");
+        localStorage.setItem("edupanel.studentEmail", formData.email.trim());
       }
 
       // Wrap router.push in startTransition to prevent router initialization errors
       startTransition(() => {
-        router.push("/active-campaigns");
+        router.push(destination);
       });
       
       // Show success notification
-      addToast("Sign in successful! Redirecting to dashboard...", "success", 3000);
+      addToast("Sign in successful! Redirecting...", "success", 3000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred during sign in";
       addToast(errorMessage, "error", 5000);
