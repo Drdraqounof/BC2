@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { prompt, context = '' } = body;
+    const { prompt, context = '', systemPrompt = '' } = body;
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    const model = process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
 
     if (!prompt) {
       return NextResponse.json(
@@ -17,12 +15,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!apiKey) {
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
       );
     }
+
+    const openai = new OpenAI({ apiKey });
 
     // Build the message with optional context
     let fullPrompt = prompt;
@@ -30,15 +30,24 @@ export async function POST(req: NextRequest) {
       fullPrompt = `${context}\n\nBased on the above context, please: ${prompt}`;
     }
 
+    const messages: Array<{ role: 'system' | 'user'; content: string }> = [];
+
+    if (typeof systemPrompt === 'string' && systemPrompt.trim()) {
+      messages.push({
+        role: 'system',
+        content: systemPrompt.trim(),
+      });
+    }
+
+    messages.push({
+      role: 'user',
+      content: fullPrompt,
+    });
+
     const message = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model,
       max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: fullPrompt,
-        },
-      ],
+      messages,
     });
 
     const generatedText = message.choices[0]?.message?.content || '';
@@ -53,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Handle specific OpenAI errors
     if (error.status === 401) {
       return NextResponse.json(
-        { error: 'Invalid OpenAI API key' },
+        { error: 'Invalid OpenAI API key. Update OPENAI_API_KEY in .env and restart the dev server.' },
         { status: 401 }
       );
     }
@@ -62,6 +71,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Please try again later.' },
         { status: 429 }
+      );
+    }
+
+    if (error.status === 403) {
+      const providerMessage = typeof error?.message === 'string' && error.message.trim()
+        ? error.message
+        : 'The configured OpenAI project does not have access to the requested model.';
+
+      return NextResponse.json(
+        { error: providerMessage },
+        { status: 403 }
       );
     }
 

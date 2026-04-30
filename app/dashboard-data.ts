@@ -41,19 +41,6 @@ export const activeCampaigns: CampaignRecord[] = [
     accent: "bg-[var(--signal-gold)]",
     archived: false,
   },
-  {
-    id: "campaign-test-prep",
-    title: "Test Preparation Initiative",
-    description: "Build readiness before assessment week for the current cohort.",
-    students: "13 students",
-    selectedStudents: ["Eli Johnson", "Ava Patel"],
-    goal: "Lift benchmark readiness before assessment week",
-    goalType: "Custom",
-    status: "On Track",
-    progress: 84,
-    accent: "bg-[var(--signal-green)]",
-    archived: false,
-  },
 ];
 
 export type StudentRecord = {

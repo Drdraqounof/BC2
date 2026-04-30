@@ -28,6 +28,12 @@ function LoginContent() {
     setIsLoading(true);
 
     try {
+      if (role === "teacher") {
+        localStorage.setItem("edupanel.teacherEmail", formData.email.trim());
+      } else {
+        localStorage.removeItem("edupanel.teacherEmail");
+      }
+
       // Wrap router.push in startTransition to prevent router initialization errors
       startTransition(() => {
         router.push("/active-campaigns");

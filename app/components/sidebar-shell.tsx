@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const navigationItems = [
@@ -14,7 +14,13 @@ const navigationItems = [
 
 export function SidebarShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("edupanel.teacherEmail");
+    router.push("/login?role=teacher");
+  };
 
   return (
     <div className="flex min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -88,6 +94,23 @@ export function SidebarShell({ children }: { children: React.ReactNode }) {
             Campaigns turn signals into action, so every page keeps the next intervention visible.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-3 flex items-center gap-3 rounded-2xl border border-white/12 px-3 py-3 text-left text-white/74 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xs font-semibold uppercase tracking-[0.14em]">
+            LO
+          </span>
+          <span
+            className={`overflow-hidden text-sm font-medium transition-all ${
+              collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            }`}
+          >
+            Logout
+          </span>
+        </button>
       </aside>
 
       <div className="relative flex min-h-screen flex-1 overflow-hidden">

@@ -28,6 +28,14 @@ type Student = {
   classroomCode?: string | null;
 };
 
+type TeacherProfile = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  schoolName?: string | null;
+};
+
 type EmailType = 
   | "campaign_launch" 
   | "assignment_notification" 
@@ -49,6 +57,7 @@ export default function AiWriterPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
+  const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
@@ -90,6 +99,19 @@ export default function AiWriterPage() {
           },
         ];
         setCampaigns(mockCampaigns);
+
+        const storedTeacherEmail = localStorage.getItem("edupanel.teacherEmail")?.trim();
+        const teacherResponse = await fetch(
+          storedTeacherEmail
+            ? `/api/teachers?email=${encodeURIComponent(storedTeacherEmail)}`
+            : "/api/teachers"
+        );
+
+        if (teacherResponse.ok) {
+          const teacherData = await teacherResponse.json();
+          const resolvedTeacher = Array.isArray(teacherData) ? teacherData[0] : teacherData;
+          setTeacherProfile(resolvedTeacher ?? null);
+        }
       } catch (err) {
         console.error("Failed to load data:", err);
       }
@@ -114,6 +136,10 @@ export default function AiWriterPage() {
     // Show all students from database, not just campaign students
     return allStudents;
   };
+
+  const teacherDisplayName = teacherProfile
+    ? `${teacherProfile.firstName} ${teacherProfile.lastName}`
+    : "Your teacher";
 
   const toggleStudentSelection = (studentName: string) => {
     setSelectedStudents((prev) => {
@@ -163,7 +189,42 @@ export default function AiWriterPage() {
     return context;
   };
 
-  const buildEmailPrompt = (studentName: string): string => {
+  const buildEmailInstruction = (studentName: string) => {
+    switch (emailType) {
+      case "campaign_launch":
+        return `Write a concise, friendly email to ${studentName} introducing this new campaign and explaining how it will help them.`;
+      case "assignment_notification":
+        return `Write a brief email to ${studentName} notifying them about a new assignment and what they need to do.`;
+      case "assignment_reminder":
+        return `Write a friendly reminder email to ${studentName} about an upcoming assignment deadline.`;
+      case "follow_up_question":
+        return `Write a thoughtful follow-up email to ${studentName} asking about their progress and offering support.`;
+      case "individual_feedback":
+        return `Write personalized feedback email to ${studentName} on their current work and progress.`;
+      case "custom":
+        return customPrompt;
+    }
+  };
+
+  const buildEmailSystemPrompt = () => {
+    const rules = [
+      "You are an assistant that writes teacher-to-student outreach emails.",
+      "Keep the tone professional, warm, direct, and specific to the student context provided.",
+      "Keep each email under 150 words.",
+      `Sign the email as ${teacherDisplayName}.`,
+      "Do not use placeholder text such as [Your School], [Contact Information], [Teacher Name], or any bracketed fill-in fields.",
+      "If school or contact details are not explicitly provided, omit them instead of inventing them.",
+      "Return only the finished email body with no prefatory notes or explanation.",
+    ];
+
+    if (teacherProfile?.schoolName) {
+      rules.splice(4, 0, `Use ${teacherProfile.schoolName} as the school name when it is relevant to the email.`);
+    }
+
+    return rules.join(" ");
+  };
+
+  const buildEmailUserPrompt = (studentName: string): string => {
     const context = buildContext();
     const studentInfo = getStudentInfo(studentName);
     
@@ -174,31 +235,13 @@ export default function AiWriterPage() {
     if (studentInfo?.email) {
       studentContext += `\nEmail: ${studentInfo.email}`;
     }
-    
-    let basePrompt = "";
 
-    switch (emailType) {
-      case "campaign_launch":
-        basePrompt = `Write a concise, friendly email to ${studentName} introducing this new campaign and explaining how it will help them.`;
-        break;
-      case "assignment_notification":
-        basePrompt = `Write a brief email to ${studentName} notifying them about a new assignment and what they need to do.`;
-        break;
-      case "assignment_reminder":
-        basePrompt = `Write a friendly reminder email to ${studentName} about an upcoming assignment deadline.`;
-        break;
-      case "follow_up_question":
-        basePrompt = `Write a thoughtful follow-up email to ${studentName} asking about their progress and offering support.`;
-        break;
-      case "individual_feedback":
-        basePrompt = `Write personalized feedback email to ${studentName} on their current work and progress.`;
-        break;
-      case "custom":
-        basePrompt = customPrompt;
-        break;
+    let teacherContext = `\nTeacher Name: ${teacherDisplayName}`;
+    if (teacherProfile?.schoolName) {
+      teacherContext += `\nSchool: ${teacherProfile.schoolName}`;
     }
 
-    return `${context}${studentContext}\n\nBased on this context, please: ${basePrompt}\n\nMake it professional but friendly, personalized to their situation, and keep it under 150 words.`;
+    return `${context}${studentContext}${teacherContext}\n\nTask: ${buildEmailInstruction(studentName)}`;
   };
 
   const handleGenerateEmails = async () => {
@@ -223,19 +266,31 @@ export default function AiWriterPage() {
 
     try {
       const emailsData: Record<string, string> = {};
+      const systemPrompt = buildEmailSystemPrompt();
 
       // Generate email for each selected student
       for (const studentName of Array.from(selectedStudents)) {
-        const prompt = buildEmailPrompt(studentName);
+        const prompt = buildEmailUserPrompt(studentName);
 
         const response = await fetch("/api/ai/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify({ prompt, systemPrompt }),
         });
 
         if (!response.ok) {
-          throw new Error("Failed to generate email");
+          let errorMessage = "Failed to generate email";
+
+          try {
+            const errorData = await response.json();
+            if (typeof errorData?.error === "string" && errorData.error.trim()) {
+              errorMessage = errorData.error;
+            }
+          } catch {
+            // Fall back to the default message if the response body is not JSON.
+          }
+
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -279,6 +334,56 @@ export default function AiWriterPage() {
     }
   };
 
+  const handleEmailDraftChange = (studentName: string, value: string) => {
+    setGeneratedEmails((prev) => ({
+      ...prev,
+      [studentName]: value,
+    }));
+  };
+
+  const getEmailSubject = (studentName: string) => {
+    const campaign = getSelectedCampaign();
+    const task = getSelectedTask();
+
+    switch (emailType) {
+      case "campaign_launch":
+        return campaign ? `${campaign.title}: support plan for ${studentName}` : `Support plan for ${studentName}`;
+      case "assignment_notification":
+        return task ? `New assignment: ${task.title}` : `New assignment for ${studentName}`;
+      case "assignment_reminder":
+        return task ? `Reminder: ${task.title}` : `Assignment reminder for ${studentName}`;
+      case "follow_up_question":
+        return `Checking in on your progress, ${studentName}`;
+      case "individual_feedback":
+        return `Feedback on your recent work, ${studentName}`;
+      case "custom":
+        return campaign?.title || task?.title || `Message for ${studentName}`;
+    }
+  };
+
+  const handleSendEmail = (studentName: string) => {
+    const student = getStudentInfo(studentName);
+
+    if (!student?.email) {
+      setError(`No email address is available for ${studentName}.`);
+      return;
+    }
+
+    const draft = generatedEmails[studentName];
+    if (!draft?.trim()) {
+      setError(`The email draft for ${studentName} is empty.`);
+      return;
+    }
+
+    setError("");
+
+    const mailtoHref = `mailto:${student.email}?subject=${encodeURIComponent(
+      getEmailSubject(studentName)
+    )}&body=${encodeURIComponent(draft)}`;
+
+    window.location.href = mailtoHref;
+  };
+
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
@@ -288,6 +393,9 @@ export default function AiWriterPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--muted)]">
           Create targeted outreach, assignment notifications, reminders, and follow-ups automatically powered by AI.
+        </p>
+        <p className="mt-4 text-sm text-[var(--muted)]">
+          Drafts will be signed as <span className="font-semibold text-[var(--foreground)]">{teacherDisplayName}</span> and will exclude filler placeholders.
         </p>
       </section>
 
@@ -406,17 +514,30 @@ export default function AiWriterPage() {
                 className="rounded-[24px] border border-[var(--border)] bg-white p-5"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold text-[var(--foreground)]">{studentName}</p>
-                  <button
-                    onClick={() => handleCopyEmail(studentName)}
-                    className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
-                  >
-                    Copy Email
-                  </button>
+                  <div>
+                    <p className="font-semibold text-[var(--foreground)]">{studentName}</p>
+                    <p className="text-xs text-[var(--muted)]">{getStudentInfo(studentName)?.email || "No student email on file"}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleCopyEmail(studentName)}
+                      className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                    >
+                      Copy Email
+                    </button>
+                    <button
+                      onClick={() => handleSendEmail(studentName)}
+                      className="rounded-full bg-[var(--signal-blue)] px-3 py-1 text-xs font-semibold text-black transition hover:opacity-90"
+                    >
+                      Send Email
+                    </button>
+                  </div>
                 </div>
-                <div className="mt-4 space-y-3 text-sm leading-6 text-[var(--foreground)]/84 whitespace-pre-wrap border-t border-[var(--border)] pt-4">
-                  {generatedEmails[studentName]}
-                </div>
+                <textarea
+                  value={generatedEmails[studentName] ?? ""}
+                  onChange={(e) => handleEmailDraftChange(studentName, e.target.value)}
+                  className="mt-4 min-h-44 w-full rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-4 text-sm leading-6 text-[var(--foreground)] outline-none transition focus:border-[var(--signal-blue)]"
+                />
               </div>
             ))}
           </div>
@@ -435,6 +556,9 @@ export default function AiWriterPage() {
                 <p className="mt-1 text-sm text-[var(--muted)]">
                   Email {currentPreviewIndex + 1} of {studentList.length}
                 </p>
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  {getStudentInfo(currentStudent)?.email || "No student email on file"}
+                </p>
               </div>
               <button
                 onClick={handleClosePreview}
@@ -445,11 +569,11 @@ export default function AiWriterPage() {
             </div>
 
             {/* Email Content */}
-            <div className="mb-6 max-h-96 overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-6">
-              <div className="whitespace-pre-wrap text-sm leading-7 text-[var(--foreground)]">
-                {currentEmail}
-              </div>
-            </div>
+            <textarea
+              value={currentEmail}
+              onChange={(e) => handleEmailDraftChange(currentStudent, e.target.value)}
+              className="mb-6 min-h-72 w-full rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-6 text-sm leading-7 text-[var(--foreground)] outline-none transition focus:border-[var(--signal-blue)]"
+            />
 
             {/* Actions */}
             <div className="flex items-center justify-between gap-3">
@@ -461,12 +585,20 @@ export default function AiWriterPage() {
                 ← Previous
               </button>
 
-              <button
-                onClick={() => handleCopyEmail(currentStudent)}
-                className="rounded-full bg-[var(--signal-blue)] px-6 py-2 text-sm font-semibold text-black transition hover:opacity-90"
-              >
-                Copy Email
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleCopyEmail(currentStudent)}
+                  className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                >
+                  Copy Email
+                </button>
+                <button
+                  onClick={() => handleSendEmail(currentStudent)}
+                  className="rounded-full bg-[var(--signal-blue)] px-6 py-2 text-sm font-semibold text-black transition hover:opacity-90"
+                >
+                  Send Email
+                </button>
+              </div>
 
               <button
                 onClick={handleNextEmail}
@@ -479,7 +611,7 @@ export default function AiWriterPage() {
 
             {/* Footer Info */}
             <p className="mt-4 text-center text-xs text-[var(--muted)]">
-              Review all emails to verify the AI captured your prompt and student information
+              Review, edit, and send each draft through your default mail app.
             </p>
           </div>
         </div>
