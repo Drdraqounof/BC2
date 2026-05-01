@@ -5,9 +5,37 @@ import bcrypt from "bcryptjs";
 export async function GET(request: NextRequest) {
   try {
     const email = request.nextUrl.searchParams.get("email")?.trim();
+    const classroomId = request.nextUrl.searchParams.get("classroomId")?.trim();
+    const teacherEmail = request.nextUrl.searchParams.get("teacherEmail")?.trim();
+
+    const where: {
+      email?: string;
+      classroomId?: string;
+      classroom?: {
+        teacher: {
+          email: string;
+        };
+      };
+    } = {};
+
+    if (email) {
+      where.email = email;
+    }
+
+    if (classroomId) {
+      where.classroomId = classroomId;
+    }
+
+    if (teacherEmail) {
+      where.classroom = {
+        teacher: {
+          email: teacherEmail,
+        },
+      };
+    }
 
     const students = await prisma.student.findMany({
-      where: email ? { email } : undefined,
+      where,
       select: {
         id: true,
         firstName: true,
@@ -15,7 +43,17 @@ export async function GET(request: NextRequest) {
         email: true,
         gradeLabel: true,
         classroomCode: true,
+        classroomId: true,
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            teacherId: true,
+          },
+        },
       },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
     return NextResponse.json(students, { status: 200 });
@@ -31,7 +69,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { firstName, lastName, email, password, grade, classroomCode } = body;
+    const { firstName, lastName, email, password, grade, classroomId, classroomCode } = body;
 
     // Validate required fields
     if (!firstName || !lastName || !email || !password) {
@@ -56,6 +94,24 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    let resolvedClassroomCode: string | null = classroomCode || null;
+
+    if (classroomId) {
+      const classroom = await prisma.classroom.findUnique({
+        where: { id: classroomId },
+        select: { id: true, code: true },
+      });
+
+      if (!classroom) {
+        return NextResponse.json(
+          { error: "Selected classroom could not be found" },
+          { status: 400 }
+        );
+      }
+
+      resolvedClassroomCode = classroom.code;
+    }
+
     // Create student
     const student = await prisma.student.create({
       data: {
@@ -64,7 +120,8 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         gradeLabel: grade || null,
-        classroomCode: classroomCode || null,
+        classroomId: classroomId || null,
+        classroomCode: resolvedClassroomCode,
       },
     });
 

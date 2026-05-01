@@ -99,41 +99,22 @@ export async function POST(req: NextRequest) {
       finalOwnerId = defaultTeacher.id;
     }
 
-    // Resolve student names to IDs
-    let finalStudentIds: string[] = [];
-    
-    // If studentIds contain names (strings with spaces), try to look them up
-    // Otherwise assume they're already IDs
-    if (studentIds.length > 0 && studentIds[0].includes(' ')) {
-      // Parse full names and look up student IDs
-      for (const fullName of studentIds) {
-        const parts = fullName.trim().split(' ');
-        if (parts.length >= 2) {
-          const firstName = parts[0];
-          const lastName = parts.slice(1).join(' ');
-          
-          const student = await prisma.student.findFirst({
-            where: {
-              firstName: { equals: firstName, mode: 'insensitive' },
-              lastName: { equals: lastName, mode: 'insensitive' }
-            },
-            select: { id: true }
-          });
+    const matchingStudents = await prisma.student.findMany({
+      where: {
+        id: {
+          in: studentIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
 
-          if (student) {
-            finalStudentIds.push(student.id);
-          }
-        }
-      }
-      
-      if (finalStudentIds.length === 0) {
-        return NextResponse.json(
-          { error: 'Could not find any of the selected students in the database' },
-          { status: 400 }
-        );
-      }
-    } else {
-      finalStudentIds = studentIds;
+    if (matchingStudents.length !== studentIds.length) {
+      return NextResponse.json(
+        { error: 'One or more selected students could not be found' },
+        { status: 400 }
+      );
     }
 
     // Create the campaign
@@ -149,7 +130,7 @@ export async function POST(req: NextRequest) {
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         studentLinks: {
-          create: finalStudentIds.map(studentId => ({
+          create: studentIds.map((studentId: string) => ({
             studentId,
             status: 'PENDING'
           }))

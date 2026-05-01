@@ -23,6 +23,15 @@ export async function GET(
         password: true,
         gradeLabel: true,
         classroomCode: true,
+        classroomId: true,
+        classroom: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            teacherId: true,
+          },
+        },
       },
     });
 

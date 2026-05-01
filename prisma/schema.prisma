@@ -96,6 +96,7 @@ model Teacher {
   lastName      String
   schoolId      String?
   school        School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  classrooms    Classroom[]
   campaigns     Campaign[]     @relation("CampaignOwner")
   authoredNotes CampaignNote[] @relation("CampaignNoteAuthor")
   createdTasks  Task[]         @relation("TaskCreator")
@@ -104,6 +105,20 @@ model Teacher {
   updatedAt     DateTime       @updatedAt
 
   @@index([schoolId, email])
+}
+
+model Classroom {
+  id          String    @id @default(cuid())
+  name        String
+  code        String
+  teacherId   String
+  teacher     Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  students    Student[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([teacherId, code])
+  @@index([teacherId, name])
 }
 
 model Student {
@@ -116,8 +131,10 @@ model Student {
   gradeLabel    String?
   courseLabel   String?
   classroomCode String?
+  classroomId   String?
   supportStatus String?
   schoolId      String?
+  classroom     Classroom?        @relation(fields: [classroomId], references: [id], onDelete: SetNull)
   school        School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   campaigns     CampaignStudent[]
   taskAssignments TaskAssignment[]
@@ -126,6 +143,7 @@ model Student {
   updatedAt     DateTime          @updatedAt
 
   @@index([schoolId])
+  @@index([classroomId])
   @@index([email])
   @@index([lastName, firstName])
 }

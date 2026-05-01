@@ -2,16 +2,30 @@
 
 import { useMemo, useState, useEffect } from "react";
 
-import { activeCampaigns, studentList, mockTasks, type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
+import { activeCampaigns, mockTasks, type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
 
 type CampaignStatus = CampaignRecord["status"];
+
+type AvailableStudent = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  gradeLabel?: string | null;
+  classroomCode?: string | null;
+  classroom?: {
+    id: string;
+    name: string;
+    code: string;
+  } | null;
+};
 
 type CampaignFormState = {
   title: string;
   description: string;
   goal: string;
   goalType: CampaignGoalType;
-  selectedStudents: string[];
+  selectedStudentIds: string[];
   status: CampaignStatus;
 };
 
@@ -24,20 +38,31 @@ const accentByGoalType: Record<CampaignGoalType, string> = {
   Custom: "bg-[var(--signal-blue)]",
 };
 
-function formatStudentSegment(selectedStudents: string[]) {
-  if (selectedStudents.length === 0) {
+function formatStudentSegment(selectedStudentIds: string[]) {
+  if (selectedStudentIds.length === 0) {
     return "No students selected";
   }
 
-  return `${selectedStudents.length} student${selectedStudents.length === 1 ? "" : "s"}`;
+  return `${selectedStudentIds.length} student${selectedStudentIds.length === 1 ? "" : "s"}`;
 }
 
-function getStudentPreview(selectedStudents: string[]) {
-  if (selectedStudents.length === 0) {
+function getStudentNames(selectedStudentIds: string[], availableStudents: AvailableStudent[]) {
+  const studentNames = selectedStudentIds
+    .map((studentId) => {
+      const student = availableStudents.find((candidate) => candidate.id === studentId);
+      return student ? `${student.firstName} ${student.lastName}` : null;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  return studentNames;
+}
+
+function getStudentPreview(selectedStudentIds: string[], availableStudents: AvailableStudent[]) {
+  if (selectedStudentIds.length === 0) {
     return "Choose students for this campaign.";
   }
 
-  return selectedStudents.join(", ");
+  return getStudentNames(selectedStudentIds, availableStudents).join(", ");
 }
 
 function getEmptyForm(): CampaignFormState {
@@ -46,7 +71,7 @@ function getEmptyForm(): CampaignFormState {
     description: "",
     goal: "",
     goalType: "Custom",
-    selectedStudents: [],
+    selectedStudentIds: [],
     status: "Draft",
   };
 }
@@ -65,6 +90,7 @@ function isFieldEmpty(field: string | string[]): boolean {
 export default function ActiveCampaignsPage() {
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>(activeCampaigns);
   const [form, setForm] = useState<CampaignFormState>(getEmptyForm);
+  const [availableStudents, setAvailableStudents] = useState<AvailableStudent[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isStudentPickerOpen, setIsStudentPickerOpen] = useState(false);
@@ -88,6 +114,7 @@ export default function ActiveCampaignsPage() {
             goal: campaign.goal || "",
             students: `${campaign.studentLinks?.length || 0} students`,
             selectedStudents: campaign.studentLinks?.map((link: any) => link.student?.firstName + " " + link.student?.lastName).filter(Boolean) || [],
+            selectedStudentIds: campaign.studentLinks?.map((link: any) => link.student?.id).filter(Boolean) || [],
             goalType: "Custom" as CampaignGoalType,
             status: campaign.status as CampaignStatus,
             progress: campaign.progressSnapshot || 0,
@@ -103,6 +130,29 @@ export default function ActiveCampaignsPage() {
     };
 
     loadCampaigns();
+  }, []);
+
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        const storedTeacherEmail = window.localStorage.getItem("edupanel.teacherEmail")?.trim();
+        const query = storedTeacherEmail
+          ? `/api/students?teacherEmail=${encodeURIComponent(storedTeacherEmail)}`
+          : "/api/students";
+        const response = await fetch(query);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch students (${response.status})`);
+        }
+
+        const data = await response.json();
+        setAvailableStudents(data);
+      } catch (error) {
+        console.error('Failed to load students for campaigns:', error);
+      }
+    };
+
+    loadStudents();
   }, []);
 
   const visibleCampaigns = useMemo(
@@ -141,7 +191,8 @@ export default function ActiveCampaignsPage() {
     const title = form.title.trim();
     const description = form.description.trim();
     const goal = form.goal.trim();
-    const selectedStudents = form.selectedStudents;
+    const selectedStudentIds = form.selectedStudentIds;
+    const selectedStudentNames = getStudentNames(selectedStudentIds, availableStudents);
 
     if (!title) {
       errors.push("Campaign title is required");
@@ -152,7 +203,7 @@ export default function ActiveCampaignsPage() {
       errors.push("A campaign with this title already exists");
     }
     
-    if (selectedStudents.length === 0) {
+    if (selectedStudentIds.length === 0) {
       errors.push("Student segment is required - please select at least one student");
     }
     if (!description) {
@@ -182,7 +233,7 @@ export default function ActiveCampaignsPage() {
               description,
               goal,
               status: form.status,
-              studentIds: selectedStudents, // Send student names as IDs for now
+              studentIds: selectedStudentIds,
             })
           });
 
@@ -199,8 +250,9 @@ export default function ActiveCampaignsPage() {
                     title,
                     description,
                     goal,
-                    students: formatStudentSegment(selectedStudents),
-                    selectedStudents,
+                    students: formatStudentSegment(selectedStudentIds),
+                    selectedStudents: selectedStudentNames,
+                    selectedStudentIds,
                     goalType: form.goalType,
                     status: form.status,
                     accent: accentByGoalType[form.goalType],
@@ -244,7 +296,7 @@ export default function ActiveCampaignsPage() {
             description: form.description,
             goal: form.goal,
             status: statusMap[form.status] || form.status,
-            studentIds: form.selectedStudents,
+            studentIds: selectedStudentIds,
           })
         });
 
@@ -256,7 +308,7 @@ export default function ActiveCampaignsPage() {
             status: response.status,
             contentType,
             responseText,
-            body: form.selectedStudents.length > 0 ? 'Students selected' : 'No students'
+            body: selectedStudentIds.length > 0 ? 'Students selected' : 'No students'
           });
 
           if (contentType?.includes('application/json')) {
@@ -293,8 +345,9 @@ export default function ActiveCampaignsPage() {
             title: form.title,
             description: form.description,
             goal: form.goal,
-            students: formatStudentSegment(form.selectedStudents),
-            selectedStudents: form.selectedStudents,
+            students: formatStudentSegment(selectedStudentIds),
+            selectedStudents: selectedStudentNames,
+            selectedStudentIds,
             goalType: form.goalType,
             status: form.status,
             progress: 0,
@@ -326,7 +379,7 @@ export default function ActiveCampaignsPage() {
       description: campaign.description,
       goal: campaign.goal,
       goalType: campaign.goalType,
-      selectedStudents: campaign.selectedStudents,
+      selectedStudentIds: campaign.selectedStudentIds || [],
       status: campaign.status,
     });
     setIsEditingDetails(editMode);
@@ -443,15 +496,15 @@ export default function ActiveCampaignsPage() {
     performDelete();
   }
 
-  function toggleStudentSelection(studentName: string) {
+  function toggleStudentSelection(studentId: string) {
     setForm((current) => {
-      const isSelected = current.selectedStudents.includes(studentName);
+      const isSelected = current.selectedStudentIds.includes(studentId);
 
       return {
         ...current,
-        selectedStudents: isSelected
-          ? current.selectedStudents.filter((name) => name !== studentName)
-          : [...current.selectedStudents, studentName],
+        selectedStudentIds: isSelected
+          ? current.selectedStudentIds.filter((id) => id !== studentId)
+          : [...current.selectedStudentIds, studentId],
       };
     });
   }
@@ -532,16 +585,16 @@ export default function ActiveCampaignsPage() {
               type="button"
               onClick={() => setIsStudentPickerOpen(true)}
               className={`rounded-2xl border px-4 py-3 text-left text-sm transition hover:border-[var(--signal-blue)] ${
-                isFieldEmpty(form.selectedStudents)
+                isFieldEmpty(form.selectedStudentIds)
                   ? "border-red-200 bg-red-50/50"
                   : "border-green-200 bg-green-50/50"
               }`}
             >
               <span className="block font-medium text-[var(--foreground)]">
-                {formatStudentSegment(form.selectedStudents)}
+                {formatStudentSegment(form.selectedStudentIds)}
               </span>
               <span className="mt-1 block text-[var(--muted)]">
-                {getStudentPreview(form.selectedStudents)}
+                {getStudentPreview(form.selectedStudentIds, availableStudents)}
               </span>
             </button>
           </label>
@@ -967,10 +1020,10 @@ export default function ActiveCampaignsPage() {
                           className="rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-left text-sm transition hover:border-[var(--signal-blue)]"
                         >
                           <span className="block font-medium text-[var(--foreground)]">
-                            {formatStudentSegment(form.selectedStudents)}
+                            {formatStudentSegment(form.selectedStudentIds)}
                           </span>
                           <span className="mt-1 block text-[var(--muted)]">
-                            {getStudentPreview(form.selectedStudents)}
+                            {getStudentPreview(form.selectedStudentIds, availableStudents)}
                           </span>
                         </button>
                       </label>
@@ -1099,22 +1152,24 @@ export default function ActiveCampaignsPage() {
                 Current segment
               </p>
               <p className="mt-3 text-base font-medium text-[var(--foreground)]">
-                {formatStudentSegment(form.selectedStudents)}
+                {formatStudentSegment(form.selectedStudentIds)}
               </p>
               <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
-                {getStudentPreview(form.selectedStudents)}
+                {getStudentPreview(form.selectedStudentIds, availableStudents)}
               </p>
             </div>
 
             <div className="mt-6 grid gap-3">
-              {studentList.map((student) => {
-                const isSelected = form.selectedStudents.includes(student.name);
+              {availableStudents.map((student) => {
+                const studentName = `${student.firstName} ${student.lastName}`;
+                const classroomLabel = student.classroom?.name || student.classroomCode || "No classroom";
+                const isSelected = form.selectedStudentIds.includes(student.id);
 
                 return (
                   <button
-                    key={student.name}
+                    key={student.id}
                     type="button"
-                    onClick={() => toggleStudentSelection(student.name)}
+                    onClick={() => toggleStudentSelection(student.id)}
                     className={`grid gap-3 rounded-[24px] border p-4 text-left transition md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-center ${
                       isSelected
                         ? "border-[var(--signal-blue)] bg-[var(--panel)]"
@@ -1123,17 +1178,17 @@ export default function ActiveCampaignsPage() {
                   >
                     <div>
                       <p className="text-lg font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                        {student.name}
+                        {studentName}
                       </p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">{student.grade}</p>
+                      <p className="mt-1 text-sm text-[var(--muted)]">{student.gradeLabel || classroomLabel}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Signal</p>
-                      <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{student.signal}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Student ID</p>
+                      <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{student.id}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Status</p>
-                      <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{student.status}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Classroom</p>
+                      <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{classroomLabel}</p>
                     </div>
                     <span className={`rounded-full px-4 py-2 text-sm font-medium ${isSelected ? "bg-[var(--foreground)] text-white" : "bg-[var(--panel)] text-[var(--foreground)]"}`}>
                       {isSelected ? "Selected" : "Add"}

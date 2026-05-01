@@ -55,33 +55,22 @@ export async function PATCH(
 
     // Handle student list updates if provided
     if (studentIds && Array.isArray(studentIds)) {
-      // Resolve student names to IDs
-      let finalStudentIds: string[] = [];
-      
-      // If studentIds contain names (strings with spaces), try to look them up
-      if (studentIds.length > 0 && studentIds[0].includes(' ')) {
-        // Parse full names and look up student IDs
-        for (const fullName of studentIds) {
-          const parts = fullName.trim().split(' ');
-          if (parts.length >= 2) {
-            const firstName = parts[0];
-            const lastName = parts.slice(1).join(' ');
-            
-            const student = await prisma.student.findFirst({
-              where: {
-                firstName: { equals: firstName, mode: 'insensitive' },
-                lastName: { equals: lastName, mode: 'insensitive' }
-              },
-              select: { id: true }
-            });
+      const matchingStudents = await prisma.student.findMany({
+        where: {
+          id: {
+            in: studentIds,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
 
-            if (student) {
-              finalStudentIds.push(student.id);
-            }
-          }
-        }
-      } else {
-        finalStudentIds = studentIds;
+      if (matchingStudents.length !== studentIds.length) {
+        return NextResponse.json(
+          { error: 'One or more selected students could not be found' },
+          { status: 400 }
+        );
       }
 
       // Get current student links
@@ -92,7 +81,7 @@ export async function PATCH(
 
       // Remove students no longer in the list
       const studentsToRemove = currentStudentIds.filter(
-        sid => !finalStudentIds.includes(sid)
+        sid => !studentIds.includes(sid)
       );
       if (studentsToRemove.length > 0) {
         await prisma.campaignStudent.deleteMany({
@@ -104,7 +93,7 @@ export async function PATCH(
       }
 
       // Add new students
-      const studentsToAdd = finalStudentIds.filter(
+      const studentsToAdd = studentIds.filter(
         sid => !currentStudentIds.includes(sid)
       );
       if (studentsToAdd.length > 0) {

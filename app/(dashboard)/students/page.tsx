@@ -9,6 +9,23 @@ type Student = {
   email: string;
   gradeLabel?: string;
   password?: string;
+  classroomCode?: string | null;
+  classroomId?: string | null;
+  classroom?: {
+    id: string;
+    name: string;
+    code: string;
+    teacherId: string;
+  } | null;
+};
+
+type Classroom = {
+  id: string;
+  name: string;
+  code: string;
+  teacherId: string;
+  studentCount: number;
+  createdAt?: string;
 };
 
 type Assignment = {
@@ -25,11 +42,20 @@ type FormState = {
   email: string;
   password: string;
   grade: string;
+  classroomId: string;
+};
+
+type ClassroomFormState = {
+  name: string;
+  code: string;
 };
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [teacherEmail, setTeacherEmail] = useState("");
+  const [classroomFilter, setClassroomFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isFormClosing, setIsFormClosing] = useState(false);
@@ -55,48 +81,103 @@ export default function StudentsPage() {
     email: "",
     password: "",
     grade: "",
+    classroomId: "",
+  });
+  const [classroomForm, setClassroomForm] = useState<ClassroomFormState>({
+    name: "",
+    code: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [classroomError, setClassroomError] = useState("");
+  const [classroomSuccess, setClassroomSuccess] = useState("");
+  const [isCreatingClassroom, setIsCreatingClassroom] = useState(false);
+
+  const loadStudents = async (options?: { teacherEmail?: string; classroomId?: string }) => {
+    const searchParams = new URLSearchParams();
+
+    if (options?.teacherEmail) {
+      searchParams.set("teacherEmail", options.teacherEmail);
+    }
+
+    if (options?.classroomId && options.classroomId !== "all") {
+      searchParams.set("classroomId", options.classroomId);
+    }
+
+    const query = searchParams.toString();
+    const response = await fetch(query ? `/api/students?${query}` : "/api/students");
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch students (${response.status})`);
+    }
+
+    const data = await response.json();
+    setStudents(data);
+    setAllStudents(data);
+  };
+
+  const loadClassrooms = async (currentTeacherEmail: string) => {
+    if (!currentTeacherEmail) {
+      setClassrooms([]);
+      return;
+    }
+
+    const response = await fetch(`/api/classrooms?teacherEmail=${encodeURIComponent(currentTeacherEmail)}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch classrooms (${response.status})`);
+    }
+
+    const data = await response.json();
+    setClassrooms(data);
+  };
 
   // Load students from API on mount
   useEffect(() => {
-    const loadStudents = async () => {
+    const loadStudentDirectory = async () => {
       try {
-        const response = await fetch("/api/students");
-        if (response.ok) {
-          const data = await response.json();
-          setStudents(data);
-          setAllStudents(data);
-        } else {
-          console.error("Failed to fetch students:", response.status);
-        }
+        const storedTeacherEmail = window.localStorage.getItem("edupanel.teacherEmail")?.trim() || "";
+        setTeacherEmail(storedTeacherEmail);
+
+        await Promise.all([
+          loadStudents({ teacherEmail: storedTeacherEmail }),
+          loadClassrooms(storedTeacherEmail),
+        ]);
       } catch (err) {
         console.error("Failed to load students:", err);
       }
     };
 
-    loadStudents();
+    loadStudentDirectory();
   }, []);
 
   // Filter students based on search query
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setStudents(allStudents);
-    } else {
-      const filtered = allStudents.filter(
-        (student) =>
-          student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          student.email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setStudents(filtered);
-    }
-  }, [searchQuery, allStudents]);
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    const filtered = allStudents.filter((student) => {
+      const matchesSearch =
+        normalizedSearch === "" ||
+        student.firstName.toLowerCase().includes(normalizedSearch) ||
+        student.lastName.toLowerCase().includes(normalizedSearch) ||
+        student.email.toLowerCase().includes(normalizedSearch) ||
+        student.classroom?.name?.toLowerCase().includes(normalizedSearch) ||
+        student.classroomCode?.toLowerCase().includes(normalizedSearch);
+
+      const matchesClassroom = classroomFilter === "all" || student.classroomId === classroomFilter;
+
+      return matchesSearch && matchesClassroom;
+    });
+
+    setStudents(filtered);
+  }, [searchQuery, allStudents, classroomFilter]);
 
   const handleFieldChange = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleClassroomFieldChange = <K extends keyof ClassroomFormState>(field: K, value: ClassroomFormState[K]) => {
+    setClassroomForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const closeForm = () => {
@@ -107,6 +188,53 @@ export default function StudentsPage() {
       setError("");
       setSuccessMessage("");
     }, 500);
+  };
+
+  const handleCreateClassroom = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setClassroomError("");
+    setClassroomSuccess("");
+
+    if (!teacherEmail) {
+      setClassroomError("Sign in as a teacher before creating classrooms.");
+      return;
+    }
+
+    if (!classroomForm.name.trim()) {
+      setClassroomError("Classroom name is required.");
+      return;
+    }
+
+    setIsCreatingClassroom(true);
+
+    try {
+      const response = await fetch("/api/classrooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teacherEmail,
+          name: classroomForm.name.trim(),
+          code: classroomForm.code.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create classroom");
+      }
+
+      await loadClassrooms(teacherEmail);
+      setClassroomSuccess(`Classroom ${data.name} created with code ${data.code}.`);
+      setClassroomForm({ name: "", code: "" });
+      if (!form.classroomId) {
+        setForm((prev) => ({ ...prev, classroomId: data.id }));
+      }
+    } catch (err) {
+      setClassroomError(err instanceof Error ? err.message : "Failed to create classroom");
+    } finally {
+      setIsCreatingClassroom(false);
+    }
   };
 
   const getMockAssignments = (studentId: string): Assignment[] => {
@@ -252,13 +380,10 @@ export default function StudentsPage() {
         throw new Error(errorData.error || "Failed to delete student");
       }
 
-      // Refetch students to update the list
-      const studentsResponse = await fetch("/api/students");
-      if (studentsResponse.ok) {
-        const studentsData = await studentsResponse.json();
-        setStudents(studentsData);
-        setAllStudents(studentsData);
-      }
+      await Promise.all([
+        loadStudents({ teacherEmail, classroomId: classroomFilter }),
+        loadClassrooms(teacherEmail),
+      ]);
 
       // Close profile modal
       closeProfile();
@@ -292,6 +417,7 @@ export default function StudentsPage() {
           email: form.email.trim(),
           password: form.password,
           grade: form.grade || null,
+          classroomId: form.classroomId || null,
         }),
       });
 
@@ -300,18 +426,13 @@ export default function StudentsPage() {
         throw new Error(errorData.error || "Failed to create student");
       }
 
-      const newStudent = await response.json();
-      
-      // Refetch students to get the complete list
-      const studentsResponse = await fetch("/api/students");
-      if (studentsResponse.ok) {
-        const studentsData = await studentsResponse.json();
-        setStudents(studentsData);
-        setAllStudents(studentsData);
-      }
+      await Promise.all([
+        loadStudents({ teacherEmail, classroomId: classroomFilter }),
+        loadClassrooms(teacherEmail),
+      ]);
 
       setSuccessMessage(`Student ${form.firstName} ${form.lastName} added successfully!`);
-      setForm({ firstName: "", lastName: "", email: "", password: "", grade: "" });
+      setForm({ firstName: "", lastName: "", email: "", password: "", grade: "", classroomId: "" });
 
       setTimeout(() => {
         closeForm();
@@ -361,6 +482,80 @@ export default function StudentsPage() {
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
           Add students and view their intervention status.
         </h1>
+      </section>
+
+      <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Classroom Codes</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Manage teacher classrooms</h2>
+          </div>
+          <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)]">
+            {classrooms.length} classroom{classrooms.length === 1 ? "" : "s"}
+          </span>
+        </div>
+
+        {classroomError ? (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50/50 p-4">
+            <p className="text-sm text-red-700">{classroomError}</p>
+          </div>
+        ) : null}
+
+        {classroomSuccess ? (
+          <div className="mb-4 rounded-2xl border border-green-200 bg-green-50/50 p-4">
+            <p className="text-sm text-green-700">{classroomSuccess}</p>
+          </div>
+        ) : null}
+
+        <form className="grid gap-4 md:grid-cols-[1.1fr_0.9fr_auto]" onSubmit={handleCreateClassroom}>
+          <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
+            Classroom name
+            <input
+              type="text"
+              value={classroomForm.name}
+              onChange={(e) => handleClassroomFieldChange("name", e.target.value)}
+              placeholder="Period 2 Algebra"
+              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
+            Classroom code
+            <input
+              type="text"
+              value={classroomForm.code}
+              onChange={(e) => handleClassroomFieldChange("code", e.target.value)}
+              placeholder="Optional custom code"
+              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm uppercase outline-none transition focus:border-[var(--signal-blue)]"
+            />
+          </label>
+
+          <div className="flex items-end">
+            <button
+              type="submit"
+              disabled={isCreatingClassroom}
+              className="w-full rounded-2xl bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92 disabled:opacity-50"
+            >
+              {isCreatingClassroom ? "Creating..." : "Create classroom"}
+            </button>
+          </div>
+        </form>
+
+        {classrooms.length > 0 ? (
+          <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {classrooms.map((classroom) => (
+              <article key={classroom.id} className="rounded-[24px] border border-[var(--border)] bg-white p-4">
+                <p className="text-lg font-semibold tracking-[-0.03em]">{classroom.name}</p>
+                <p className="mt-1 text-sm text-[var(--muted)]">Code: {classroom.code}</p>
+                <p className="mt-3 text-sm font-medium text-[var(--foreground)]">{classroom.studentCount} student{classroom.studentCount === 1 ? "" : "s"}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-6 rounded-[24px] border border-[var(--border)] bg-white p-6 text-center">
+            <p className="text-sm text-[var(--muted)]">No classrooms created yet. Create one before assigning students.</p>
+          </div>
+        )}
       </section>
 
       <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
@@ -443,6 +638,22 @@ export default function StudentsPage() {
                 />
               </label>
 
+              <label className="md:col-span-2 flex flex-col gap-2 text-sm font-medium text-[var(--foreground)] animate-in fade-in slide-in-from-bottom duration-500" style={{animationDelay: "0.325s", animationFillMode: "both"}}>
+                Classroom
+                <select
+                  value={form.classroomId}
+                  onChange={(e) => handleFieldChange("classroomId", e.target.value)}
+                  className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+                >
+                  <option value="">No classroom selected</option>
+                  {classrooms.map((classroom) => (
+                    <option key={classroom.id} value={classroom.id}>
+                      {classroom.name} ({classroom.code})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <div className="flex items-end gap-3 animate-in fade-in slide-in-from-bottom duration-500" style={{animationDelay: "0.35s", animationFillMode: "both"}}>
                 <button
                   type="submit"
@@ -478,13 +689,27 @@ export default function StudentsPage() {
         </div>
 
         <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
-          />
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <input
+              type="text"
+              placeholder="Search by name, email, or classroom..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+            />
+            <select
+              value={classroomFilter}
+              onChange={(e) => setClassroomFilter(e.target.value)}
+              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
+            >
+              <option value="all">All classrooms</option>
+              {classrooms.map((classroom) => (
+                <option key={classroom.id} value={classroom.id}>
+                  {classroom.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {students.length === 0 ? (
@@ -498,7 +723,7 @@ export default function StudentsPage() {
             {students.map((student) => (
               <article
                 key={student.id}
-                className="grid gap-3 rounded-[24px] border border-[var(--border)] bg-white p-4 md:grid-cols-[1.2fr_1fr_1fr] md:items-center"
+                className="grid gap-3 rounded-[24px] border border-[var(--border)] bg-white p-4 md:grid-cols-[1.2fr_1fr_1fr_1fr] md:items-center"
               >
                 <div>
                   <p className="text-lg font-semibold tracking-[-0.03em]">
@@ -509,6 +734,10 @@ export default function StudentsPage() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Grade</p>
                   <p className="mt-2 text-sm font-medium">{student.gradeLabel || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Classroom</p>
+                  <p className="mt-2 text-sm font-medium">{student.classroom?.name || student.classroomCode || "—"}</p>
                 </div>
                 <button
                   onClick={() => openProfile(student)}
@@ -559,6 +788,13 @@ export default function StudentsPage() {
                   <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                     <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)] mb-2">Grade</p>
                     <p className="text-lg font-semibold">{selectedStudent.gradeLabel || "—"}</p>
+                  </div>
+                  <div className="rounded-[24px] border border-[var(--border)] bg-white p-4 md:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)] mb-2">Classroom</p>
+                    <p className="text-lg font-semibold">
+                      {selectedStudent.classroom?.name || "No classroom assigned"}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">Code: {selectedStudent.classroom?.code || selectedStudent.classroomCode || "—"}</p>
                   </div>
                 </div>
               </div>

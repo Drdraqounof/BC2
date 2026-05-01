@@ -6,6 +6,7 @@ export type CampaignRecord = {
   description: string;
   students: string;
   selectedStudents: string[];
+  selectedStudentIds?: string[];
   goal: string;
   goalType: CampaignGoalType;
   status: "Draft" | "In Progress" | "Needs Follow-Up" | "On Track" | "Completed";
