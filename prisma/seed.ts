@@ -11,17 +11,22 @@ async function main() {
       create: { name: "Launchpad Philadelphia" },
     });
 
-    // Add teacher
-    const teacher = await prisma.teacher.upsert({
-      where: { email: "rob@launchpadphilly.org" },
-      update: {},
-      create: {
-        email: "rob@launchpadphilly.org",
-        firstName: "Rob",
-        lastName: "Launchpad",
-        schoolId: school.id,
-      },
-    });
+    
+// Add teacher
+const teacher = await prisma.teacher.upsert({
+  where: { email: "rob@launchpadphilly.org" },
+  update: {
+    firstName: "Rob",
+    lastName: "Launchpad",
+    schoolId: school.id,
+  },
+  create: {
+    email: "rob@launchpadphilly.org",
+    firstName: "Rob",
+    lastName: "Launchpad",
+    schoolId: school.id,
+  },
+});
 
     console.log("✅ Teacher created/updated:", teacher);
 
