@@ -36,14 +36,14 @@ export async function POST(
       select: { studentId: true }
     });
 
-    const existingStudentIds = existingAssignments.map(a => a.studentId);
+    const existingStudentIds = existingAssignments.map((assignment: { studentId: string }) => assignment.studentId);
 
     // Create assignments only for new students
-    const newStudentIds = studentIds.filter(id => !existingStudentIds.includes(id));
+    const newStudentIds = studentIds.filter((studentId: string) => !existingStudentIds.includes(studentId));
 
     if (newStudentIds.length > 0) {
       await prisma.taskAssignment.createMany({
-        data: newStudentIds.map(studentId => ({
+        data: newStudentIds.map((studentId: string) => ({
           taskId: id,
           studentId
         }))
