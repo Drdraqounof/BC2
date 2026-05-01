@@ -1,10 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
+type TaskRouteContext = {
+  params: Promise<{ id: string }>;
+};
+
 // GET /api/tasks/[id] - Fetch a single task
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: TaskRouteContext
 ) {
   try {
     const { id } = await params;
@@ -47,7 +51,7 @@ export async function GET(
 // PATCH /api/tasks/[id] - Update a task
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: TaskRouteContext
 ) {
   try {
     const { id } = await params;
@@ -105,12 +109,14 @@ export async function PATCH(
 // DELETE /api/tasks/[id] - Delete a task
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: TaskRouteContext
 ) {
   try {
+    const { id } = await params;
+
     // Cascade delete will handle removing related TaskAssignments
     await prisma.task.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ success: true, message: 'Task deleted' });

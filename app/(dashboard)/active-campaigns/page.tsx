@@ -249,27 +249,39 @@ export default function ActiveCampaignsPage() {
         });
 
         if (!response.ok) {
-          let errorData = {};
+          let errorMessage = `Failed to create campaign (${response.status})`;
           const contentType = response.headers.get('content-type');
           const responseText = await response.text();
-          console.error('Campaign creation failed:', { 
-            status: response.status, 
+          console.error('Campaign creation failed:', {
+            status: response.status,
             contentType,
             responseText,
             body: form.selectedStudents.length > 0 ? 'Students selected' : 'No students'
           });
-          
+
           if (contentType?.includes('application/json')) {
             try {
-              errorData = JSON.parse(responseText);
+              const parsed: unknown = JSON.parse(responseText);
+
+              if (
+                parsed &&
+                typeof parsed === 'object' &&
+                'error' in parsed &&
+                typeof parsed.error === 'string' &&
+                parsed.error.trim()
+              ) {
+                errorMessage = parsed.error;
+              }
             } catch {
-              errorData = { error: responseText };
+              if (responseText.trim()) {
+                errorMessage = responseText;
+              }
             }
-          } else {
-            errorData = { error: responseText || 'Server error' };
+          } else if (responseText.trim()) {
+            errorMessage = responseText;
           }
-          
-          throw new Error(errorData.error || `Failed to create campaign (${response.status})`);
+
+          throw new Error(errorMessage);
         }
 
         const newCampaign = await response.json();
