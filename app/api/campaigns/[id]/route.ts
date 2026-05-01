@@ -81,7 +81,7 @@ export async function PATCH(
 
       // Remove students no longer in the list
       const studentsToRemove = currentStudentIds.filter(
-        sid => !studentIds.includes(sid)
+        (sid: string) => !studentIds.includes(sid)
       );
       if (studentsToRemove.length > 0) {
         await prisma.campaignStudent.deleteMany({
@@ -94,7 +94,7 @@ export async function PATCH(
 
       // Add new students
       const studentsToAdd = studentIds.filter(
-        sid => !currentStudentIds.includes(sid)
+        (sid: string) => !currentStudentIds.includes(sid)
       );
       if (studentsToAdd.length > 0) {
         await prisma.campaignStudent.createMany({
