@@ -77,7 +77,7 @@ export async function PATCH(
       const currentLinks = await prisma.campaignStudent.findMany({
         where: { campaignId: id }
       });
-      const currentStudentIds = currentLinks.map(link => link.studentId);
+      const currentStudentIds = currentLinks.map((link: { studentId: string }) => link.studentId);
 
       // Remove students no longer in the list
       const studentsToRemove = currentStudentIds.filter(
@@ -98,7 +98,7 @@ export async function PATCH(
       );
       if (studentsToAdd.length > 0) {
         await prisma.campaignStudent.createMany({
-          data: studentsToAdd.map(studentId => ({
+          data: studentsToAdd.map((studentId: string) => ({
             campaignId: id,
             studentId,
             status: 'PENDING'
