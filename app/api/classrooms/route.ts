@@ -48,7 +48,14 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(
-      classrooms.map((classroom) => ({
+      classrooms.map((classroom: {
+        id: string;
+        name: string;
+        code: string;
+        teacherId: string;
+        createdAt: Date;
+        students: Array<{ id: string }>;
+      }) => ({
         id: classroom.id,
         name: classroom.name,
         code: classroom.code,
