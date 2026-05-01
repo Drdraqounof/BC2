@@ -42,12 +42,12 @@ export async function GET(req: NextRequest) {
     // Filter by completion status if provided
     let filteredTasks = tasks;
     if (status === 'completed') {
-      filteredTasks = tasks.filter(task =>
-        task.taskAssignments.every(assignment => assignment.completedAt !== null)
+      filteredTasks = tasks.filter((task: { taskAssignments: Array<{ completedAt: Date | null }> }) =>
+        task.taskAssignments.every((assignment: { completedAt: Date | null }) => assignment.completedAt !== null)
       );
     } else if (status === 'pending') {
-      filteredTasks = tasks.filter(task =>
-        task.taskAssignments.some(assignment => assignment.completedAt === null)
+      filteredTasks = tasks.filter((task: { taskAssignments: Array<{ completedAt: Date | null }> }) =>
+        task.taskAssignments.some((assignment: { completedAt: Date | null }) => assignment.completedAt === null)
       );
     }
 
