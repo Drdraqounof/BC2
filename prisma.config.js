@@ -1,5 +1,11 @@
 if (typeof process.loadEnvFile === 'function') {
-  process.loadEnvFile();
+  try {
+    process.loadEnvFile();
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes("ENOENT")) {
+      throw error;
+    }
+  }
 }
 
 module.exports = {
