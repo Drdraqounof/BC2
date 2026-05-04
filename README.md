@@ -30,7 +30,7 @@ EduPanel shifts teachers from:
 
 ## About
 
-EduPanel is a Next.js prototype for a teacher-facing intervention workspace. The current app is a front-end demo with pages driven by local mock data in `app/dashboard-data.ts` and navigational login flow.
+EduPanel is a Next.js teacher and student workspace for intervention planning, task assignment, and progress review. The app is currently in a mixed state: several dashboard surfaces now load from Prisma-backed API routes, while a few older screens still use transitional mock data from `app/dashboard-data.ts`.
 
 ## Stack
 
@@ -47,24 +47,34 @@ EduPanel is a Next.js prototype for a teacher-facing intervention workspace. The
 
 - `/` landing page for EduPanel
 - `/features` product overview and workflow explanation
-- `/login` teacher sign-in screen
+- `/login` role-aware sign-in screen
+- `/signup` teacher and student account creation flow
+- `/role-select` workspace role chooser
 
 ### Dashboard Pages
 
-- `/active-campaigns` active intervention campaigns
-- `/progress-tracking` outcome metrics and four-week trends
+- `/active-campaigns` teacher progress and campaign management workspace
+- `/task-assignment` teacher task creation and assignment workspace
+- `/view-tasks` teacher task review workspace
 - `/students` student list with signals and support status
 - `/ai-writer` prompt library and outreach draft preview
 
+### Student Pages
+
+- `/student` student task dashboard
+- `/student/campaigns` assigned campaign overview
+- `/student/submissions` student submission workspace
+- `/student/progress` student progress metrics
+- `/student/profile` student account summary
+
 ## Current Scope
 
-- Dashboard UI for intervention campaigns is implemented
-- Dashboard content is powered by static demo data in `app/dashboard-data.ts`
-- Sidebar navigation is shared across all dashboard pages
-- Frontend workflows for campaigns, progress tracking, and student signals are in place
-- Database schema (Prisma) is defined but not yet connected
-- No API routes, server-side mutations, or persistent authentication are configured yet
-- Login flow is navigational only
+- Campaign, student, teacher, and task API routes are implemented under `app/api/`
+- Teacher task creation, campaign management, and student lookup now use database-backed fetches
+- Student dashboards load assigned tasks and related campaign context from API-backed data
+- Some pages still use transitional mock data while the mock-to-database migration is being completed
+- Authentication is still local-storage based for now and is intended for prototype/demo flows
+- Login and signup now enforce proper email formatting before continuing
 
 ## Getting Started
 
@@ -126,6 +136,7 @@ npm run prisma:studio
 - `.env` is included for local development only and is ignored by git
 - Never commit real OAuth secrets; keep them only in `.env` or your deployment platform secret store
 - Do not expose server secrets with a `NEXT_PUBLIC_` prefix
+- Prisma config tolerates missing `.env` files so hosted environments like Vercel can use injected environment variables
 
 ## Prisma Schema
 
@@ -133,11 +144,15 @@ The schema lives in `prisma/schema.prisma` and models the current EduPanel domai
 
 - `Teacher` for teacher accounts and campaign ownership
 - `Student` for tracked learners
+- `Classroom` for teacher-linked class groups and roster organization
 - `Campaign` for intervention plans
 - `CampaignStudent` for campaign membership and per-student status
 - `StudentSignal` for risk indicators like missing work or attendance
 - `CampaignNote` for intervention notes
 - `PromptTemplate` for reusable AI writer prompts
+- `Task` for teacher-assigned work items
+- `TaskAssignment` for per-student task completion tracking
+- `ActivityLog` for high-level workflow history
 
 ## Project Structure
 
@@ -146,15 +161,20 @@ app/
 	(dashboard)/
 		active-campaigns/
 		ai-writer/
-		progress-tracking/
+		task-assignment/
+		view-tasks/
 		students/
 		layout.tsx
+	api/
 	components/
 		sidebar-shell.tsx
 	dashboard-data.ts
 	features/
 	homepage.tsx
 	login/
+	role-select/
+	signup/
+	student/
 	page.tsx
 	layout.tsx
 ```
@@ -166,10 +186,11 @@ app/
 - The root page delegates to `app/homepage.tsx`
 - The dashboard pages are grouped under `app/(dashboard)` and rendered inside the sidebar shell
 - Reuse the Prisma singleton from `lib/prisma.ts` for server-side database access
+- The repository root contains a leftover `package.json`; app commands and hosted builds should target `my-app/`
 
 ## Possible Next Steps
 
-- Replace mock dashboard data with a real backend
-- Add real authentication for teachers
-- Connect campaign creation and student detail flows
+- Finish removing remaining mock task and campaign fallbacks
+- Replace local-storage sign-in with real authentication for teachers and students
+- Connect teacher submission review to live evidence and assignment data
 - Add tests for navigation and page rendering

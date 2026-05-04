@@ -7,6 +7,17 @@ import { useToast, Toast } from "../../components/toast";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+type RoleConfig = {
+  icon: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  features: string[];
+  signUpFields: string[];
+  color: string;
+  buttonColor: string;
+};
+
 function LoginContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -40,6 +51,31 @@ function LoginContent() {
       const destination = role === "student" ? "/student" : "/active-campaigns";
 
       if (role === "teacher") {
+        const teacherResponse = await fetch(`/api/teachers?email=${encodeURIComponent(trimmedEmail)}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!teacherResponse.ok) {
+          throw new Error("We could not find a teacher account for this email. Please create an account before signing in.");
+        }
+      } else {
+        const studentResponse = await fetch(`/api/students?email=${encodeURIComponent(trimmedEmail)}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!studentResponse.ok) {
+          throw new Error("We could not find a student account for this email. Please create an account before signing in.");
+        }
+
+        const matchedStudents = (await studentResponse.json()) as Array<{ id: string }>;
+        if (matchedStudents.length === 0) {
+          throw new Error("We could not find a student account for this email. Please create an account before signing in.");
+        }
+      }
+
+      if (role === "teacher") {
         localStorage.setItem("edupanel.teacherEmail", trimmedEmail);
         localStorage.removeItem("edupanel.studentEmail");
       } else {
@@ -62,7 +98,7 @@ function LoginContent() {
     }
   };
 
-  const roleConfig: Record<string, any> = {
+  const roleConfig: Record<string, RoleConfig> = {
     teacher: {
       icon: "👨‍🏫",
       title: "Teacher Portal",

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type TaskRecord } from "../../dashboard-data";
 
 type StudentOption = {
@@ -211,6 +212,7 @@ function normalizeTaskRecord(task: TaskApiRecord): TaskRecord {
 }
 
 export default function TaskAssignmentPage() {
+  const router = useRouter();
   const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignOption[]>([]);
   const [students, setStudents] = useState<StudentOption[]>([]);
@@ -403,18 +405,82 @@ export default function TaskAssignmentPage() {
     }
   }
 
-  function deleteTask(id: string) {
-    setTasks((current) => current.filter((task) => task.id !== id));
+  async function deleteTask(id: string) {
+    setTaskSubmitError(null);
+    setTaskSubmitSuccess(null);
+
+    try {
+      const response = await fetch(`/api/tasks/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = (await response.json()) as { error?: string; message?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete the task.");
+      }
+
+      setTasks((current) => current.filter((task) => task.id !== id));
+      setTaskSubmitSuccess(data.message || "Task deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      setTaskSubmitError(error instanceof Error ? error.message : "Failed to delete the task.");
+    }
   }
 
-  function markTaskComplete(taskId: string) {
-    setTasks((current) =>
-      current.map((task) =>
-        task.id === taskId
-          ? { ...task, completedCount: task.studentCount, status: "completed" as const }
-          : task,
-      ),
-    );
+  async function markTaskComplete(taskId: string) {
+    const task = tasks.find((entry) => entry.id === taskId);
+
+    if (!task) {
+      setTaskSubmitError("Task not found.");
+      setTaskSubmitSuccess(null);
+      return;
+    }
+
+    if (!task.selectedStudentIds || task.selectedStudentIds.length === 0) {
+      setTaskSubmitError("This task has no assigned students to mark as complete.");
+      setTaskSubmitSuccess(null);
+      return;
+    }
+
+    setTaskSubmitError(null);
+    setTaskSubmitSuccess(null);
+
+    try {
+      await Promise.all(
+        task.selectedStudentIds.map(async (studentId) => {
+          const response = await fetch(`/api/tasks/${taskId}/complete`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              studentId,
+              isComplete: true,
+            }),
+          });
+
+          const data = (await response.json()) as { error?: string };
+
+          if (!response.ok) {
+            throw new Error(data.error || "Failed to mark the task as complete.");
+          }
+        }),
+      );
+
+      setTasks((current) =>
+        current.map((entry) =>
+          entry.id === taskId
+            ? { ...entry, completedCount: entry.studentCount, status: "completed" as const }
+            : entry,
+        ),
+      );
+
+      setTaskSubmitSuccess("Task marked as completed successfully.");
+    } catch (error) {
+      console.error("Failed to mark task complete:", error);
+      setTaskSubmitError(error instanceof Error ? error.message : "Failed to mark the task as complete.");
+    }
   }
 
   function toggleStudentSelection(studentId: string) {
@@ -731,8 +797,19 @@ export default function TaskAssignmentPage() {
             </div>
           ) : (
             filteredTasks.map((task) => (
-              <Link key={task.id} href={`/task-assignment/${task.id}`}>
-                <article className="cursor-pointer rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] transition hover:border-[var(--signal-blue)]">
+              <article
+                key={task.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/task-assignment/${task.id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push(`/task-assignment/${task.id}`);
+                  }
+                }}
+                className="cursor-pointer rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] transition hover:border-[var(--signal-blue)]"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
@@ -791,7 +868,6 @@ export default function TaskAssignmentPage() {
                   </div>
                 </div>
               </article>
-            </Link>
             ))
           )}
         </section>
