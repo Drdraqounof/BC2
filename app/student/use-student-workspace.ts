@@ -94,14 +94,14 @@ function normalizeTaskRecord(task: TaskApiRecord): TaskRecord {
   };
 }
 
-async function fetchAssignedTasks(studentId: string): Promise<TaskRecord[]> {
-  const response = await fetch(`/api/tasks?studentId=${encodeURIComponent(studentId)}`, {
+async function fetchVisibleTasks(): Promise<TaskRecord[]> {
+  const response = await fetch(`/api/tasks`, {
     method: "GET",
     cache: "no-store",
   });
 
   if (!response.ok) {
-    throw new Error("Failed to load your assigned tasks.");
+    throw new Error("Failed to load your tasks.");
   }
 
   const tasks = (await response.json()) as TaskApiRecord[];
@@ -140,7 +140,7 @@ export function useStudentWorkspace(): UseStudentWorkspaceResult {
           return;
         }
 
-        const assignedTasks = await fetchAssignedTasks(matchedStudent.id);
+        const assignedTasks = await fetchVisibleTasks();
         const assignedCampaigns = activeCampaigns.filter((campaign) =>
           assignedTasks.some((task) => task.campaignId === campaign.id)
         );
