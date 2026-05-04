@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense, useTransition } from "react";
 import { useToast, Toast } from "../../components/toast";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function LoginContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -25,17 +27,24 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const trimmedEmail = formData.email.trim();
+    if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      addToast("Please enter a valid email address, such as name@gmail.com.", "error", 5000);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const destination = role === "student" ? "/student" : "/active-campaigns";
 
       if (role === "teacher") {
-        localStorage.setItem("edupanel.teacherEmail", formData.email.trim());
+        localStorage.setItem("edupanel.teacherEmail", trimmedEmail);
         localStorage.removeItem("edupanel.studentEmail");
       } else {
         localStorage.removeItem("edupanel.teacherEmail");
-        localStorage.setItem("edupanel.studentEmail", formData.email.trim());
+        localStorage.setItem("edupanel.studentEmail", trimmedEmail);
       }
 
       // Wrap router.push in startTransition to prevent router initialization errors
@@ -157,6 +166,7 @@ function LoginContent() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="you@example.com"
+                      pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
                       className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                       required
                     />

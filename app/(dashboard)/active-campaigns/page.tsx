@@ -2,10 +2,13 @@
 
 import { useMemo, useState, useEffect } from "react";
 
+// This page still bridges database-backed campaign data with a few legacy mock-driven UI surfaces.
 import { activeCampaigns, mockTasks, type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
 
+// Reuse the shared campaign status union so the form and cards stay in sync.
 type CampaignStatus = CampaignRecord["status"];
 
+// Student picker rows only need lightweight identity and classroom context.
 type AvailableStudent = {
   id: string;
   firstName: string;
@@ -20,6 +23,7 @@ type AvailableStudent = {
   } | null;
 };
 
+// One form model powers both new-campaign creation and full-screen campaign editing.
 type CampaignFormState = {
   title: string;
   description: string;
@@ -29,16 +33,32 @@ type CampaignFormState = {
   status: CampaignStatus;
 };
 
+// These goal categories drive both the select input and the summary chips shown on campaign cards.
 const goalTypeOptions: CampaignGoalType[] = ["Attendance", "Grades", "Behavior", "Custom"];
+
+// Status options match the teacher-facing campaign lifecycle used across create, edit, and detail views.
 const statusOptions: CampaignStatus[] = ["Draft", "In Progress", "Needs Follow-Up", "On Track", "Completed"];
+
+// The Tailwind classes below point at CSS variables defined in the app theme, 
+// which keeps goal colors consistent without hardcoding hex values here.
 const accentByGoalType: Record<CampaignGoalType, string> = {
+  // Attendance-focused campaigns use the gold signal color to read as caution or watchlist work.
   Attendance: "bg-[var(--signal-gold)]",
+  
+  // Grades map to the red signal color so academic risk stands out immediately in cards and progress bars.
   Grades: "bg-[var(--signal-red)]",
+  
+  // Behavior uses the green signal color, matching the behavior/status styling used elsewhere in the app.
   Behavior: "bg-[var(--signal-green)]",
+  
+  // Custom campaigns fall back to the default blue accent used for neutral campaign UI.
   Custom: "bg-[var(--signal-blue)]",
 };
 
+// These helpers keep the student segment UI readable even though the form stores raw student IDs.
 function formatStudentSegment(selectedStudentIds: string[]) {
+  
+  // Convert the selected IDs array into a short human-readable summary for buttons and badges.
   if (selectedStudentIds.length === 0) {
     return "No students selected";
   }
@@ -47,6 +67,8 @@ function formatStudentSegment(selectedStudentIds: string[]) {
 }
 
 function getStudentNames(selectedStudentIds: string[], availableStudents: AvailableStudent[]) {
+  
+  // Resolve stored student IDs back to display names so forms and detail panels can show real people, not IDs.
   const studentNames = selectedStudentIds
     .map((studentId) => {
       const student = availableStudents.find((candidate) => candidate.id === studentId);
@@ -94,33 +116,41 @@ export default function ActiveCampaignsPage() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isStudentPickerOpen, setIsStudentPickerOpen] = useState(false);
+  // Tasks are still seeded from mock data here, which is useful for layout coverage but can drift from real database state.
   const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showErrorNotification, setShowErrorNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load campaigns from API on mount
+  // Hydrate campaign cards from the API, but keep mock content as a visual fallback while migration finishes.
   useEffect(() => {
     const loadCampaigns = async () => {
       try {
         const response = await fetch('/api/campaigns');
         if (response.ok) {
           const data = await response.json();
-          // Transform API response to match CampaignRecord format
+          
+          // This page expects campaign data in the older CampaignRecord format, so the API response is reshaped to match what the UI already uses.
           const transformedCampaigns = data.map((campaign: any) => ({
             id: campaign.id,
             title: campaign.title,
             description: campaign.description || "",
             goal: campaign.goal || "",
+            // The card UI still expects a short segment label, so convert the link count into readable text here.
             students: `${campaign.studentLinks?.length || 0} students`,
+            // Keep both full names and raw IDs so the detail view can render names while edit mode can resubmit IDs.
             selectedStudents: campaign.studentLinks?.map((link: any) => link.student?.firstName + " " + link.student?.lastName).filter(Boolean) || [],
             selectedStudentIds: campaign.studentLinks?.map((link: any) => link.student?.id).filter(Boolean) || [],
+            // API data does not currently provide a goal-type classification, so this screen uses the neutral Custom bucket.
             goalType: "Custom" as CampaignGoalType,
             status: campaign.status as CampaignStatus,
             progress: campaign.progressSnapshot || 0,
+            // Campaigns loaded from the API start with the default blue accent until richer goal metadata exists.
             accent: "bg-[var(--signal-blue)]",
             archived: false,
           }));
+
+          // If the database is empty, keep the demo cards so the screen still renders, while acknowledging that mock fallback can differ from persisted data.
           setCampaigns(transformedCampaigns.length > 0 ? transformedCampaigns : activeCampaigns);
         }
       } catch (error) {
@@ -132,9 +162,11 @@ export default function ActiveCampaignsPage() {
     loadCampaigns();
   }, []);
 
+  // The student picker needs real student IDs because create and update flows now persist selected students.
   useEffect(() => {
     const loadStudents = async () => {
       try {
+        // Read the teacher session from local storage so the picker can scope to one teacher's roster when context exists.
         const storedTeacherEmail = window.localStorage.getItem("edupanel.teacherEmail")?.trim();
         const query = storedTeacherEmail
           ? `/api/students?teacherEmail=${encodeURIComponent(storedTeacherEmail)}`
@@ -146,6 +178,8 @@ export default function ActiveCampaignsPage() {
         }
 
         const data = await response.json();
+        // Without a teacher session, the fallback query loads the full roster so the picker still works in broader testing flows.
+        // Store the live roster so campaign creation and editing use real student IDs from the database.
         setAvailableStudents(data);
       } catch (error) {
         console.error('Failed to load students for campaigns:', error);
@@ -221,7 +255,7 @@ export default function ActiveCampaignsPage() {
 
     setIsSubmitting(true);
 
-    // Handle campaign update (PATCH)
+    // Reuse the same form for both create and edit modes; switch to PATCH when a campaign is already selected.
     if (selectedCampaignId && isEditingDetails) {
       const updateCampaign = async () => {
         try {
@@ -277,7 +311,7 @@ export default function ActiveCampaignsPage() {
       return;
     }
 
-    // Handle campaign creation (POST)
+    // New campaigns go through the API first, then the local card list is updated optimistically.
     const createCampaign = async () => {
       try {
         const statusMap: Record<string, string> = {
@@ -420,7 +454,7 @@ export default function ActiveCampaignsPage() {
   }
 
   function archiveCampaign(id: string) {
-    // Archive is a local UI state, not persisted to database yet
+    // Archive is still UI-only, so this toggle deliberately avoids a server round trip for now.
     setCampaigns((current) =>
       current.map((campaign) =>
         campaign.id === id
@@ -513,24 +547,25 @@ export default function ActiveCampaignsPage() {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">
-          Active Campaigns
+          Progress Tracking
         </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
-          Structured interventions with clear goals and visible status.
+          Track intervention progress, student groups, and next steps in one place.
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--muted)]">
-          Review the students affected, the goal for each campaign, and the next action teachers should take.
+          Review who is involved, what the goal is, and how each support plan is moving forward.
         </p>
       </section>
 
       <section className="rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-8">
+        {/* Primary campaign creation form. The same state model also powers the detail edit mode. */}
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">
-              Campaign Manager
+              Progress Manager
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">
-              Create campaigns, update details, and close the loop.
+              Update goals, review progress, and keep support plans moving.
             </h2>
           </div>
         </div>
@@ -543,7 +578,7 @@ export default function ActiveCampaignsPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-[var(--signal-red)]">
-                  Please complete the following to create your campaign:
+                  Please complete the following before saving this progress plan:
                 </h3>
                 <ul className="mt-2 space-y-1">
                   {validationErrors.map((error, index) => (
@@ -663,7 +698,7 @@ export default function ActiveCampaignsPage() {
               disabled={isSubmitting}
               className="w-full rounded-2xl bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Creating..." : "Create campaign"}
+              {isSubmitting ? "Saving..." : "Save progress plan"}
             </button>
           </div>
         </form>
@@ -818,6 +853,7 @@ export default function ActiveCampaignsPage() {
       ) : null}
 
       {selectedCampaign ? (
+        /* Full-screen detail view expands a campaign card into a review/edit workspace. */
         <section className="fixed inset-0 z-50 flex min-h-screen items-stretch bg-slate-950/45 backdrop-blur-sm">
           <div className="h-screen w-full overflow-y-auto bg-[var(--panel)] px-6 py-6 md:px-10 md:py-8">
             <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -1124,6 +1160,7 @@ export default function ActiveCampaignsPage() {
       ) : null}
 
       {isStudentPickerOpen ? (
+        /* The picker stays separate so the main form can store student IDs while still showing readable names. */
         <section className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 px-6 backdrop-blur-sm">
           <div className="w-full max-w-3xl rounded-[32px] border border-[var(--border)] bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.16)] md:p-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

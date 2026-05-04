@@ -17,8 +17,7 @@ always read User-journey.md
 always read the readme.md 
 always read the issues.md 
 always read the troubleshooting.md 
-don't let me go 
-...m 
+
 
 awalys udpate status after feature past testing
 always udpate issue and troubleshooting when issue are found and fixed 

@@ -123,8 +123,8 @@ async function fetchTeacherByEmail(email: string): Promise<TeacherRecord> {
   return (await response.json()) as TeacherRecord;
 }
 
-async function fetchTeacherTasks(creatorId: string): Promise<TaskRecord[]> {
-  const response = await fetch(`/api/tasks?creatorId=${encodeURIComponent(creatorId)}`, {
+async function fetchTeacherTasks(): Promise<TaskRecord[]> {
+  const response = await fetch(`/api/tasks`, {
     method: "GET",
     cache: "no-store",
   });
@@ -259,7 +259,7 @@ export default function TaskAssignmentPage() {
 
         setTeacherId(teacher.id);
         const [nextTasks, nextCampaigns] = await Promise.all([
-          fetchTeacherTasks(teacher.id),
+          fetchTeacherTasks(),
           fetchTeacherCampaigns(teacher.id),
         ]);
 

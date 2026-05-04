@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface ToastNotification {
   id: string;
@@ -7,11 +7,18 @@ interface ToastNotification {
   duration?: number;
 }
 
+let nextToastId = 0;
+
+function createToastId() {
+  nextToastId += 1;
+  return `toast-${nextToastId}`;
+}
+
 export function useToast() {
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
 
   const addToast = (message: string, type: "error" | "success" | "info" = "info", duration = 5000) => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = createToastId();
     const toast: ToastNotification = { id, message, type, duration };
 
     setToasts((prev) => [...prev, toast]);

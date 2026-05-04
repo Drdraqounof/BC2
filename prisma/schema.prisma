@@ -5,6 +5,8 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// Shared enum definitions keep workflow states consistent across campaigns, tasks, signals, and activity logs.
 ////////////////////////////////
 // ENUMS
 ///////////////////////////////
@@ -78,6 +80,7 @@ enum ActivityType {
   OTHER
 }
 
+// Core organization records: a school contains teachers and students, and teachers own classrooms.
 model School {
   id        String    @id @default(cuid())
   name      String    @unique
@@ -121,6 +124,7 @@ model Classroom {
   @@index([teacherId, name])
 }
 
+// Student records stay global, but can optionally link to a school and classroom for later scoping.
 model Student {
   id            String            @id @default(cuid())
   externalId    String?           @unique
@@ -148,6 +152,7 @@ model Student {
   @@index([lastName, firstName])
 }
 
+// Campaigns organize intervention work, with CampaignStudent acting as the join table for targeted students.
 model Campaign {
   id                    String            @id @default(cuid())
   title                 String
@@ -190,6 +195,7 @@ model CampaignStudent {
   @@index([studentId, status])
 }
 
+// Signals and notes capture ongoing intervention context around a student or campaign.
 model StudentSignal {
   id             String         @id @default(cuid())
   studentId      String
@@ -235,6 +241,7 @@ model PromptTemplate {
   @@index([category, isSystem])
 }
 
+// Tasks are authored by teachers and assigned to students through TaskAssignment join rows.
 model Task {
   id                String             @id @default(cuid())
   title             String
@@ -271,6 +278,7 @@ model TaskAssignment {
   @@index([studentId, completedAt])
 }
 
+// ActivityLog is the cross-cutting audit trail for campaign, student, signal, and task events.
 model ActivityLog {
   id                   String         @id @default(cuid())
   type                 ActivityType

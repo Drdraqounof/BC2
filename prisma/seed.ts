@@ -4,33 +4,32 @@ import bcryptjs from "bcryptjs";
 
 async function main() {
   try {
-    // Get or create school
+    // Create the shared school record first so teacher and student records can reference it.
     const school = await prisma.school.upsert({
       where: { name: "Launchpad Philadelphia" },
       update: {},
       create: { name: "Launchpad Philadelphia" },
     });
 
-    
-// Add teacher
-const teacher = await prisma.teacher.upsert({
-  where: { email: "rob@launchpadphilly.org" },
-  update: {
-    firstName: "Rob",
-    lastName: "Launchpad",
-    schoolId: school.id,
-  },
-  create: {
-    email: "rob@launchpadphilly.org",
-    firstName: "Rob",
-    lastName: "Launchpad",
-    schoolId: school.id,
-  },
-});
+    // Seed a stable teacher identity that owns campaigns and tasks.
+    const teacher = await prisma.teacher.upsert({
+      where: { email: "rob@launchpadphilly.org" },
+      update: {
+        firstName: "Rob",
+        lastName: "Launchpad",
+        schoolId: school.id,
+      },
+      create: {
+        email: "rob@launchpadphilly.org",
+        firstName: "Rob",
+        lastName: "Launchpad",
+        schoolId: school.id,
+      },
+    });
 
     console.log("✅ Teacher created/updated:", teacher);
 
-    // Add mock students
+    // Seed reusable student test accounts so rerunning the script keeps the same identities.
     const studentData = [
       { firstName: "Maya", lastName: "Thompson", email: "maya.thompson@school.edu", grade: "10", classroomCode: "MATH101" },
       { firstName: "Noah", lastName: "Rivera", email: "noah.rivera@school.edu", grade: "11", classroomCode: "ENG201" },
@@ -65,10 +64,10 @@ const teacher = await prisma.teacher.upsert({
 
     console.log("✅ 4 students created/updated");
 
-    // Get all students
+    // Read back the persisted student records so later relations use database IDs.
     const students = await prisma.student.findMany();
 
-    // Create campaigns
+    // Create baseline campaigns used across teacher and student flows.
     const campaign1 = await prisma.campaign.upsert({
       where: { id: "campaign-missing-assignments" },
       update: {},
@@ -101,7 +100,7 @@ const teacher = await prisma.teacher.upsert({
 
     console.log("✅ 2 campaigns created/updated:", campaign1.id, campaign2.id);
 
-    // Link students to campaigns
+    // Attach students to campaigns with stable composite keys so reruns stay idempotent.
     for (const student of students.slice(0, 2)) {
       await prisma.campaignStudent.upsert({
         where: {
@@ -138,8 +137,10 @@ const teacher = await prisma.teacher.upsert({
 
     console.log("✅ Students linked to campaigns");
 
+    // Keep lookup-by-email handy because task seed data is expressed in readable email lists.
     const studentByEmail = new Map(students.map((student) => [student.email, student]));
 
+    // Seed fixed task IDs so the app has predictable test data across reseeds and deployments.
     const seededTasks = [
       {
         id: "task-missing-algebra",
@@ -188,6 +189,7 @@ const teacher = await prisma.teacher.upsert({
     ];
 
     for (const seededTask of seededTasks) {
+      // Upsert each task first, then create the student assignment join rows separately.
       const task = await prisma.task.upsert({
         where: { id: seededTask.id },
         update: {

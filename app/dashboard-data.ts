@@ -1,3 +1,4 @@
+// Shared campaign record shape used by older dashboard surfaces and transitional mock data.
 export type CampaignGoalType = "Attendance" | "Grades" | "Behavior" | "Custom";
 
 export type CampaignRecord = {
@@ -15,6 +16,7 @@ export type CampaignRecord = {
   archived: boolean;
 };
 
+// Legacy sample campaigns kept for UI surfaces that have not fully moved to database-backed data yet.
 export const activeCampaigns: CampaignRecord[] = [
   {
     id: "campaign-missing-work",
@@ -51,6 +53,7 @@ export type StudentRecord = {
   status: string;
 };
 
+// Transitional student list used by older mock-driven views.
 export const studentList: StudentRecord[] = [
   { name: "Maya Thompson", grade: "Algebra 2", signal: "Missing work", status: "Needs reminder" },
   { name: "Noah Rivera", grade: "Advisory", signal: "Attendance", status: "Family outreach" },
@@ -58,6 +61,7 @@ export const studentList: StudentRecord[] = [
   { name: "Ava Patel", grade: "English 10", signal: "Missing work", status: "Improving" },
 ];
 
+// Static dashboard summary content for marketing and mock analytics panels.
 export const progressMetrics = [
   { label: "Missing work resolved", value: "34%", note: "Last 30 days" },
   { label: "Attendance improvement", value: "18%", note: "Target students" },
@@ -125,6 +129,7 @@ export const featurePrinciples = [
   "Goal-based workflows that move from observation to intervention.",
 ];
 
+// Shared task record shape used by both database-normalized tasks and older mock task views.
 export type TaskType = "Build/Design Project" | "Research" | "Writing" | "Problem Set" | "Other";
 
 export type Resource = {
@@ -178,6 +183,7 @@ export type TaskRecord = {
   status: "pending" | "in-progress" | "completed" | "revision-submitted";
 };
 
+// Legacy sample tasks retained for demo states and pages not yet fully migrated to API data.
 export const mockTasks: TaskRecord[] = [
   {
     id: "task-1",

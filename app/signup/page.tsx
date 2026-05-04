@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense } from "react";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function SignupContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -34,10 +36,19 @@ function SignupContent() {
     setError(null);
 
     if (step === "email") {
-      if (!formData.email) {
+      const trimmedEmail = formData.email.trim();
+
+      if (!trimmedEmail) {
         setError("Please enter your email");
         return;
       }
+
+      if (!EMAIL_PATTERN.test(trimmedEmail)) {
+        setError("Please enter a valid email address, such as name@gmail.com.");
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, email: trimmedEmail }));
       setStep("password");
     } else if (step === "password") {
       if (!formData.password) {
@@ -216,6 +227,7 @@ function SignupContent() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="you@example.com"
+                        pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
                         className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                         required
                       />

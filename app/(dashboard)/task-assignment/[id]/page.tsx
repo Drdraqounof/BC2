@@ -11,13 +11,21 @@ type Comment = {
   timestamp: string;
 };
 
+type SubmissionEvidenceItem = {
+  id: string;
+  type: "text" | "link" | "image";
+  title: string;
+  content?: string;
+  url?: string;
+};
+
 type StudentSubmission = {
   id: string;
   studentId: string;
   studentName: string;
   submittedAt: string | null;
   grade: string | null;
-  evidence: string;
+  evidence: SubmissionEvidenceItem[];
   comments: Comment[];
   isSubmitted: boolean;
 };
@@ -62,7 +70,26 @@ export default function TaskDetailPage() {
           studentName: "Alice Johnson",
           submittedAt: "2026-04-28",
           grade: "A",
-          evidence: "Submitted worksheet with all 20 problems completed correctly. All work is clearly shown with step-by-step solutions.",
+          evidence: [
+            {
+              id: "ev-1-summary",
+              type: "text",
+              title: "Submission Summary",
+              content: "Submitted worksheet with all 20 problems completed correctly. All work is clearly shown with step-by-step solutions.",
+            },
+            {
+              id: "ev-1-pdf",
+              type: "link",
+              title: "Completed Worksheet PDF",
+              url: "https://example.com/submissions/alice-johnson-algebra-worksheet.pdf",
+            },
+            {
+              id: "ev-1-photo",
+              type: "image",
+              title: "Worksheet Photo Preview",
+              url: "https://placehold.co/1200x900/png?text=Alice+Johnson+Worksheet",
+            },
+          ],
           comments: [
             {
               id: "c1",
@@ -79,7 +106,26 @@ export default function TaskDetailPage() {
           studentName: "Bob Smith",
           submittedAt: "2026-04-27",
           grade: "B+",
-          evidence: "Submitted worksheet with 18/20 problems completed. Some work is shown but could be more detailed.",
+          evidence: [
+            {
+              id: "ev-2-summary",
+              type: "text",
+              title: "Submission Summary",
+              content: "Submitted worksheet with 18 of 20 problems completed. Some work is shown but could be more detailed.",
+            },
+            {
+              id: "ev-2-doc",
+              type: "link",
+              title: "Shared Document",
+              url: "https://example.com/submissions/bob-smith-work.pdf",
+            },
+            {
+              id: "ev-2-photo",
+              type: "image",
+              title: "Notebook Snapshot",
+              url: "https://placehold.co/1200x900/png?text=Bob+Smith+Notebook+Photo",
+            },
+          ],
           comments: [
             {
               id: "c2",
@@ -96,7 +142,7 @@ export default function TaskDetailPage() {
           studentName: "Carol Davis",
           submittedAt: null,
           grade: null,
-          evidence: "Not submitted",
+          evidence: [],
           comments: [],
           isSubmitted: false,
         },
@@ -263,9 +309,52 @@ export default function TaskDetailPage() {
                   <h3 className="text-sm uppercase tracking-[0.28em] text-[var(--muted)] mb-3">
                     Student Evidence
                   </h3>
-                  <p className="text-base leading-relaxed text-[var(--foreground)]">
-                    {selectedStudent.evidence}
-                  </p>
+                  {selectedStudent.evidence.length === 0 ? (
+                    <p className="text-base leading-relaxed text-[var(--muted)]">
+                      No evidence has been submitted yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {selectedStudent.evidence.map((item) => (
+                        <article
+                          key={item.id}
+                          className="rounded-2xl border border-[var(--border)] bg-white p-4"
+                        >
+                          <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted)]">
+                            {item.title}
+                          </p>
+
+                          {item.type === "text" && item.content ? (
+                            <p className="mt-3 text-base leading-relaxed text-[var(--foreground)]">
+                              {item.content}
+                            </p>
+                          ) : null}
+
+                          {item.url ? (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-3 inline-flex text-sm font-medium text-[var(--signal-blue)] hover:underline"
+                            >
+                              Open evidence link
+                            </a>
+                          ) : null}
+
+                          {item.type === "image" && item.url ? (
+                            <div className="mt-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--panel)] p-2">
+                              <div
+                                role="img"
+                                aria-label={item.title}
+                                className="h-64 w-full rounded-xl bg-cover bg-center bg-no-repeat"
+                                style={{ backgroundImage: `url(${item.url})` }}
+                              />
+                            </div>
+                          ) : null}
+                        </article>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </section>
 

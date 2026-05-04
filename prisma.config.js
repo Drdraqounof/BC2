@@ -1,4 +1,6 @@
-require('dotenv').config();
+if (typeof process.loadEnvFile === 'function') {
+  process.loadEnvFile();
+}
 
 module.exports = {
   datasource: {
