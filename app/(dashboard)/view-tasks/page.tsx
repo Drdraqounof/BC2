@@ -1,15 +1,48 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { mockTasks, activeCampaigns, type TaskRecord } from "../../dashboard-data";
+import { type TaskRecord } from "../../dashboard-data";
 import TaskDetail from "../../components/task-detail";
+import { normalizeTaskRecord, type TaskApiRecord } from "@/lib/task-records";
 
 export default function ViewTasksPage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
+  const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "in-progress" | "completed" | "revision-submitted">("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    async function loadTasks() {
+      try {
+        setIsLoading(true);
+        setLoadError("");
+
+        const response = await fetch("/api/tasks", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch tasks from the database.");
+        }
+
+        const data = (await response.json()) as TaskApiRecord[];
+        const nextTasks = data.map(normalizeTaskRecord);
+        setTasks(nextTasks);
+        setSelectedTaskId((currentSelectedTaskId) => currentSelectedTaskId ?? nextTasks[0]?.id ?? null);
+      } catch (error) {
+        console.error("Failed to load tasks:", error);
+        setLoadError(error instanceof Error ? error.message : "Failed to load tasks.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadTasks();
+  }, []);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -38,6 +71,10 @@ export default function ViewTasksPage() {
     HIGH: "bg-[var(--signal-red)]",
   };
 
+  function handleFilterStatusChange(value: string) {
+    setFilterStatus(value as "all" | "pending" | "in-progress" | "completed" | "revision-submitted");
+  }
+
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       {/* Header */}
@@ -53,7 +90,7 @@ export default function ViewTasksPage() {
             </p>
           </div>
           <button
-            onClick={() => router.push("/dashboard/task-assignment")}
+            onClick={() => router.push("/task-assignment")}
             className="flex-shrink-0 rounded-2xl bg-[var(--signal-blue)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
           >
             Create new task
@@ -69,7 +106,7 @@ export default function ViewTasksPage() {
               Filter by status
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
+                onChange={(e) => handleFilterStatusChange(e.target.value)}
                 className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
               >
                 <option value="all">All tasks</option>
@@ -81,34 +118,48 @@ export default function ViewTasksPage() {
             </label>
           </div>
 
-          <div className="space-y-2">
-            {filteredTasks.map((task) => (
-              <button
-                key={task.id}
-                onClick={() => setSelectedTaskId(task.id)}
-                className={`w-full rounded-[20px] border p-4 text-left transition ${
-                  selectedTaskId === task.id
-                    ? "border-[var(--signal-blue)] bg-[var(--signal-blue)]/10"
-                    : "border-[var(--border)] bg-[var(--panel)] hover:border-[var(--signal-blue)]"
-                }`}
-              >
-                <h3 className="font-semibold tracking-[-0.03em] text-[var(--foreground)]">
-                  {task.title}
-                </h3>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className={`rounded px-2 py-1 text-xs font-semibold text-white ${priorityColors[task.priority]}`}>
-                    {task.priority}
-                  </span>
-                  <span className={`rounded px-2 py-1 text-xs font-semibold text-white ${statusColors[task.status]}`}>
-                    {task.status.replace(/-/g, " ")}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-[var(--muted)]">
-                  {task.completedCount}/{task.studentCount} completed
-                </p>
-              </button>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="rounded-[20px] border border-[var(--border)] bg-[var(--panel)] p-4 text-sm text-[var(--muted)]">
+              Loading tasks...
+            </div>
+          ) : loadError ? (
+            <div className="rounded-[20px] border border-red-200 bg-red-50/60 p-4 text-sm text-red-700">
+              {loadError}
+            </div>
+          ) : filteredTasks.length === 0 ? (
+            <div className="rounded-[20px] border border-[var(--border)] bg-[var(--panel)] p-4 text-sm text-[var(--muted)]">
+              No tasks found for the current filter.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredTasks.map((task) => (
+                <button
+                  key={task.id}
+                  onClick={() => setSelectedTaskId(task.id)}
+                  className={`w-full rounded-[20px] border p-4 text-left transition ${
+                    selectedTaskId === task.id
+                      ? "border-[var(--signal-blue)] bg-[var(--signal-blue)]/10"
+                      : "border-[var(--border)] bg-[var(--panel)] hover:border-[var(--signal-blue)]"
+                  }`}
+                >
+                  <h3 className="font-semibold tracking-[-0.03em] text-[var(--foreground)]">
+                    {task.title}
+                  </h3>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className={`rounded px-2 py-1 text-xs font-semibold text-white ${priorityColors[task.priority]}`}>
+                      {task.priority}
+                    </span>
+                    <span className={`rounded px-2 py-1 text-xs font-semibold text-white ${statusColors[task.status]}`}>
+                      {task.status.replace(/-/g, " ")}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    {task.completedCount}/{task.studentCount} completed
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Task Detail */}

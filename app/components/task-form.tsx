@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { activeCampaigns, studentList, type TaskRecord } from "@/app/dashboard-data";
+import { useEffect, useState } from "react";
+import { activeCampaigns, type TaskRecord } from "@/app/dashboard-data";
+
+type StudentOption = {
+  id: string;
+  name: string;
+};
 
 interface TaskFormProps {
   task?: TaskRecord;
@@ -24,6 +29,33 @@ export interface TaskFormData {
 
 const priorityOptions: Array<"LOW" | "MEDIUM" | "HIGH"> = ["LOW", "MEDIUM", "HIGH"];
 
+async function fetchAllStudentsFromDatabase(): Promise<StudentOption[]> {
+  const response = await fetch("/api/students", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch students from the database.");
+  }
+
+  const students = (await response.json()) as Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  }>;
+
+  return students.map((student) => {
+    const name = `${student.firstName} ${student.lastName}`.trim();
+
+    return {
+      id: student.id,
+      name: name || student.email,
+    };
+  });
+}
+
 export function TaskForm({
   task,
   campaignId,
@@ -31,6 +63,9 @@ export function TaskForm({
   onCancel,
   submitLabel = "Create task",
 }: TaskFormProps) {
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+  const [studentsError, setStudentsError] = useState<string | null>(null);
   const [form, setForm] = useState<TaskFormData>({
     title: task?.title ?? "",
     description: task?.description ?? "",
@@ -41,6 +76,42 @@ export function TaskForm({
     campaignId: task?.campaignId ?? campaignId ?? "",
     selectedStudents: [],
   });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadStudents() {
+      try {
+        setStudentsLoading(true);
+        setStudentsError(null);
+
+        const nextStudents = await fetchAllStudentsFromDatabase();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setStudents(nextStudents);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error("Failed to load students for the task form:", error);
+        setStudentsError("Unable to load students right now.");
+      } finally {
+        if (isMounted) {
+          setStudentsLoading(false);
+        }
+      }
+    }
+
+    loadStudents();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function handleFieldChange<K extends keyof TaskFormData>(field: K, value: TaskFormData[K]) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -61,7 +132,7 @@ export function TaskForm({
   function assignToAllStudents() {
     setForm((current) => ({
       ...current,
-      selectedStudents: studentList.map((student) => student.name),
+      selectedStudents: students.map((student) => student.name),
     }));
   }
 
@@ -165,22 +236,32 @@ export function TaskForm({
         <button
           type="button"
           onClick={assignToAllStudents}
+          disabled={studentsLoading || students.length === 0}
           className="rounded-2xl border border-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-[var(--signal-blue)] transition hover:bg-[var(--signal-blue)]/10"
         >
           Assign to all students
         </button>
         <div className="grid max-h-48 gap-2 overflow-y-auto rounded-2xl border border-[var(--border)] bg-white p-4">
-          {studentList.map((student) => (
-            <label key={student.name} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={form.selectedStudents.includes(student.name)}
-                onChange={() => toggleStudentSelection(student.name)}
-                className="rounded"
-              />
-              <span className="text-sm">{student.name}</span>
-            </label>
-          ))}
+          {studentsLoading ? <span className="text-sm text-[var(--muted)]">Loading students...</span> : null}
+          {!studentsLoading && studentsError ? (
+            <span className="text-sm text-[var(--signal-red)]">{studentsError}</span>
+          ) : null}
+          {!studentsLoading && !studentsError && students.length === 0 ? (
+            <span className="text-sm text-[var(--muted)]">No students found in the database.</span>
+          ) : null}
+          {!studentsLoading && !studentsError
+            ? students.map((student) => (
+                <label key={student.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={form.selectedStudents.includes(student.name)}
+                    onChange={() => toggleStudentSelection(student.name)}
+                    className="rounded"
+                  />
+                  <span className="text-sm">{student.name}</span>
+                </label>
+              ))
+            : null}
         </div>
         <span className="text-xs text-[var(--muted)]">{form.selectedStudents.length} selected</span>
       </label>

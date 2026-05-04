@@ -159,7 +159,7 @@ export default function TaskDetail({
               Due Date
             </p>
             <p className="mt-2 text-sm text-[var(--foreground)]">
-              {new Date(task.dueDate).toLocaleDateString()}
+              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}
             </p>
           </div>
           {task.expirationDate && (
@@ -202,13 +202,24 @@ export default function TaskDetail({
             </div>
           )}
 
-          {task.resources && task.resources.length > 0 && (
+          {((task.resources && task.resources.length > 0) || (task.attachmentLinks && task.attachmentLinks.length > 0)) && (
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">
                 Resources
               </p>
               <ul className="mt-2 space-y-2">
-                {task.resources.map((resource) => (
+                {(task.resources && task.resources.length > 0
+                  ? task.resources.map((resource) => ({
+                      id: resource.id,
+                      title: resource.title,
+                      url: resource.url,
+                    }))
+                  : (task.attachmentLinks || []).map((link, index) => ({
+                      id: `attachment-${index}`,
+                      title: `Attachment ${index + 1}`,
+                      url: link,
+                    }))
+                ).map((resource) => (
                   <li key={resource.id}>
                     <a
                       href={resource.url}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 type Student = {
@@ -51,6 +52,7 @@ type ClassroomFormState = {
 };
 
 export default function StudentsPage() {
+  const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
@@ -94,12 +96,8 @@ export default function StudentsPage() {
   const [classroomSuccess, setClassroomSuccess] = useState("");
   const [isCreatingClassroom, setIsCreatingClassroom] = useState(false);
 
-  const loadStudents = async (options?: { teacherEmail?: string; classroomId?: string }) => {
+  const loadStudents = async (options?: { classroomId?: string }) => {
     const searchParams = new URLSearchParams();
-
-    if (options?.teacherEmail) {
-      searchParams.set("teacherEmail", options.teacherEmail);
-    }
 
     if (options?.classroomId && options.classroomId !== "all") {
       searchParams.set("classroomId", options.classroomId);
@@ -141,7 +139,7 @@ export default function StudentsPage() {
         setTeacherEmail(storedTeacherEmail);
 
         await Promise.all([
-          loadStudents({ teacherEmail: storedTeacherEmail }),
+          loadStudents(),
           loadClassrooms(storedTeacherEmail),
         ]);
       } catch (err) {
@@ -283,27 +281,7 @@ export default function StudentsPage() {
   };
 
   const openProfile = (student: Student) => {
-    setSelectedStudent(student);
-    setPasswordConfirmed(false);
-    setShowPassword(false);
-    setIsProfileOpen(true);
-    setResetError("");
-    setResetSuccess("");
-    
-    // Fetch student details with password
-    fetchStudentDetails(student.id);
-  };
-
-  const fetchStudentDetails = async (studentId: string) => {
-    try {
-      const response = await fetch(`/api/students/${studentId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedStudent(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch student details:", error);
-    }
+    router.push(`/students/${student.id}`);
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -381,7 +359,7 @@ export default function StudentsPage() {
       }
 
       await Promise.all([
-        loadStudents({ teacherEmail, classroomId: classroomFilter }),
+        loadStudents({ classroomId: classroomFilter }),
         loadClassrooms(teacherEmail),
       ]);
 
@@ -427,7 +405,7 @@ export default function StudentsPage() {
       }
 
       await Promise.all([
-        loadStudents({ teacherEmail, classroomId: classroomFilter }),
+        loadStudents({ classroomId: classroomFilter }),
         loadClassrooms(teacherEmail),
       ]);
 

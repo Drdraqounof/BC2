@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const campaignId = searchParams.get('campaignId');
     const creatorId = searchParams.get('creatorId');
+    const studentId = searchParams.get('studentId');
     const status = searchParams.get('status'); // 'completed' | 'pending' | 'all'
 
     const where: any = {};
@@ -17,6 +18,14 @@ export async function GET(req: NextRequest) {
 
     if (creatorId) {
       where.creatorId = creatorId;
+    }
+
+    if (studentId) {
+      where.taskAssignments = {
+        some: {
+          studentId,
+        },
+      };
     }
 
     const tasks = await prisma.task.findMany({

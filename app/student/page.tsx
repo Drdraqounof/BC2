@@ -135,7 +135,7 @@ export default function StudentPage() {
                         </p>
 
                         <div className="mt-4 flex flex-wrap gap-5 text-sm text-[var(--muted)]">
-                          <p>Due: {new Date(task.dueDate).toLocaleDateString()}</p>
+                          <p>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}</p>
                           <p>Submitted: {task.completedCount} of {task.studentCount}</p>
                           <p>Teacher notes: {task.comments?.length ?? 0}</p>
                         </div>
@@ -143,7 +143,7 @@ export default function StudentPage() {
                         <div className="mt-5 flex flex-wrap gap-3">
                           <Link
                             href={`/student/tasks/${task.id}`}
-                            className="rounded-full bg-[var(--foreground)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                            className="rounded-full bg-[var(--foreground)] px-4 py-2 text-sm font-medium !text-white transition hover:opacity-90"
                           >
                             Open task
                           </Link>
@@ -162,7 +162,7 @@ export default function StudentPage() {
                           {task.rubric || "No rubric has been attached yet."}
                         </p>
                         <p className="mt-4 text-sm text-[var(--muted)]">
-                          Resources: {task.resources?.length ?? 0} available
+                          Resources: {task.attachmentLinks?.length ?? 0} available
                         </p>
                       </div>
                     </div>

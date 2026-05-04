@@ -6,12 +6,21 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const ownerId = searchParams.get('ownerId');
+    const studentId = searchParams.get('studentId');
     const status = searchParams.get('status');
 
     const where: any = {};
 
     if (ownerId) {
       where.ownerId = ownerId;
+    }
+
+    if (studentId) {
+      where.studentLinks = {
+        some: {
+          studentId,
+        },
+      };
     }
 
     if (status) {

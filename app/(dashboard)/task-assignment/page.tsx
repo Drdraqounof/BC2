@@ -1,8 +1,46 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { mockTasks, studentList, activeCampaigns, type TaskRecord } from "../../dashboard-data";
+import { type TaskRecord } from "../../dashboard-data";
+
+type StudentOption = {
+  id: string;
+  name: string;
+};
+
+type TeacherRecord = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+};
+
+type CampaignOption = {
+  id: string;
+  title: string;
+};
+
+type TaskApiRecord = {
+  id: string;
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  rubric: string | null;
+  attachmentLinks: string | null;
+  campaignId: string | null;
+  creatorId: string;
+  taskAssignments: Array<{
+    id: string;
+    completedAt: string | null;
+    student: {
+      id: string;
+      firstName: string;
+      lastName: string;
+    };
+  }>;
+};
 
 type AttachmentLink = {
   id: string;
@@ -45,18 +83,220 @@ const priorityColors: Record<string, string> = {
   HIGH: "bg-[var(--signal-red)]",
 };
 
+async function fetchAllStudentsFromDatabase(): Promise<StudentOption[]> {
+  const response = await fetch("/api/students", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch students from the database.");
+  }
+
+  const students = (await response.json()) as Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  }>;
+
+  return students.map((student) => {
+    const name = `${student.firstName} ${student.lastName}`.trim();
+
+    return {
+      id: student.id,
+      name: name || student.email,
+    };
+  });
+}
+
+async function fetchTeacherByEmail(email: string): Promise<TeacherRecord> {
+  const response = await fetch(`/api/teachers?email=${encodeURIComponent(email)}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch the signed-in teacher.");
+  }
+
+  return (await response.json()) as TeacherRecord;
+}
+
+async function fetchTeacherTasks(creatorId: string): Promise<TaskRecord[]> {
+  const response = await fetch(`/api/tasks?creatorId=${encodeURIComponent(creatorId)}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch tasks from the database.");
+  }
+
+  const tasks = (await response.json()) as TaskApiRecord[];
+  return tasks.map(normalizeTaskRecord);
+}
+
+async function fetchTeacherCampaigns(ownerId: string): Promise<CampaignOption[]> {
+  const response = await fetch(`/api/campaigns?ownerId=${encodeURIComponent(ownerId)}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch campaigns from the database.");
+  }
+
+  const campaigns = (await response.json()) as Array<{
+    id: string;
+    title: string;
+  }>;
+
+  return campaigns.map((campaign) => ({
+    id: campaign.id,
+    title: campaign.title,
+  }));
+}
+
+function parseAttachmentLinks(rawValue: string | null): string[] {
+  if (!rawValue) {
+    return [];
+  }
+
+  try {
+    const parsedValue = JSON.parse(rawValue) as unknown;
+    return Array.isArray(parsedValue)
+      ? parsedValue.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeTaskRecord(task: TaskApiRecord): TaskRecord {
+  const completedCount = task.taskAssignments.filter((assignment) => assignment.completedAt !== null).length;
+  const studentCount = task.taskAssignments.length;
+  const selectedStudentIds = task.taskAssignments.map((assignment) => assignment.student.id);
+  const selectedStudents = task.taskAssignments.map((assignment) => {
+    return `${assignment.student.firstName} ${assignment.student.lastName}`.trim();
+  });
+
+  let status: TaskRecord["status"] = "pending";
+  if (studentCount > 0 && completedCount === studentCount) {
+    status = "completed";
+  } else if (completedCount > 0) {
+    status = "in-progress";
+  }
+
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description ?? "",
+    dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
+    priority: task.priority,
+    rubric: task.rubric ?? "",
+    attachmentLinks: parseAttachmentLinks(task.attachmentLinks),
+    campaignId: task.campaignId ?? undefined,
+    creatorId: task.creatorId,
+    studentCount,
+    completedCount,
+    selectedStudents,
+    selectedStudentIds,
+    comments: [],
+    evidence: [],
+    ratings: [],
+    resources: [],
+    status,
+  };
+}
+
 export default function TaskAssignmentPage() {
-  const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
+  const [tasks, setTasks] = useState<TaskRecord[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignOption[]>([]);
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+  const [studentsError, setStudentsError] = useState<string | null>(null);
+  const [teacherId, setTeacherId] = useState("");
+  const [tasksLoading, setTasksLoading] = useState(true);
+  const [tasksError, setTasksError] = useState<string | null>(null);
+  const [taskSubmitError, setTaskSubmitError] = useState<string | null>(null);
+  const [taskSubmitSuccess, setTaskSubmitSuccess] = useState<string | null>(null);
+  const [isSavingTask, setIsSavingTask] = useState(false);
   const [form, setForm] = useState<TaskFormState>(getEmptyTaskForm());
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [filterStudentId, setFilterStudentId] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed">("all");
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadWorkspace() {
+      try {
+        setStudentsLoading(true);
+        setTasksLoading(true);
+        setStudentsError(null);
+        setTasksError(null);
+
+        const storedTeacherEmail = window.localStorage.getItem("edupanel.teacherEmail")?.trim();
+        const [nextStudents, teacher] = await Promise.all([
+          fetchAllStudentsFromDatabase(),
+          storedTeacherEmail ? fetchTeacherByEmail(storedTeacherEmail) : Promise.resolve(null),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setStudents(nextStudents);
+
+        if (!teacher) {
+          setTeacherId("");
+          setCampaigns([]);
+          setTasks([]);
+          setTasksError("Sign in as a teacher to load and assign tasks.");
+          return;
+        }
+
+        setTeacherId(teacher.id);
+        const [nextTasks, nextCampaigns] = await Promise.all([
+          fetchTeacherTasks(teacher.id),
+          fetchTeacherCampaigns(teacher.id),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setTasks(nextTasks);
+        setCampaigns(nextCampaigns);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error("Failed to load task assignment workspace:", error);
+        setStudentsError("Unable to load students right now.");
+        setTasksError("Unable to load tasks right now.");
+      } finally {
+        if (isMounted) {
+          setStudentsLoading(false);
+          setTasksLoading(false);
+        }
+      }
+    }
+
+    loadWorkspace();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       // Filter by student
       if (filterStudentId !== "all") {
-        if (!task.selectedStudents || !task.selectedStudents.includes(filterStudentId)) {
+        if (!task.selectedStudentIds || !task.selectedStudentIds.includes(filterStudentId)) {
           return false;
         }
       }
@@ -104,7 +344,7 @@ export default function TaskAssignmentPage() {
     );
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const title = form.title.trim();
@@ -115,24 +355,51 @@ export default function TaskAssignmentPage() {
     }
 
     if (isCreatingTask) {
-      const newTask: TaskRecord = {
-        id: `task-${crypto.randomUUID()}`,
-        title,
-        description,
-        dueDate: form.dueDate,
-        priority: form.priority,
-        rubric: form.rubric,
-        attachmentLinks: form.attachmentLinks.map(link => link.url),
-        campaignId: form.campaignId || undefined,
-        creatorId: "teacher-1",
-        studentCount: form.selectedStudents.length,
-        completedCount: 0,
-        status: "pending",
-      };
+      if (!teacherId) {
+        setTaskSubmitError("Sign in as a teacher before creating tasks.");
+        return;
+      }
 
-      setTasks((current) => [newTask, ...current]);
-      resetForm();
-      setIsCreatingTask(false);
+      setTaskSubmitError(null);
+      setTaskSubmitSuccess(null);
+      setIsSavingTask(true);
+
+      try {
+        const response = await fetch("/api/tasks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            dueDate: form.dueDate || null,
+            priority: form.priority,
+            rubric: form.rubric.trim() || null,
+            attachmentLinks: form.attachmentLinks.map((link) => link.url),
+            campaignId: form.campaignId || null,
+            creatorId: teacherId,
+            studentIds: form.selectedStudents,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to create the task.");
+        }
+
+        const newTask = normalizeTaskRecord(data as TaskApiRecord);
+        setTasks((current) => [newTask, ...current]);
+        setTaskSubmitSuccess("Task created and assigned successfully.");
+        resetForm();
+        setIsCreatingTask(false);
+      } catch (error) {
+        console.error("Failed to create task:", error);
+        setTaskSubmitError(error instanceof Error ? error.message : "Failed to create the task.");
+      } finally {
+        setIsSavingTask(false);
+      }
     }
   }
 
@@ -150,14 +417,14 @@ export default function TaskAssignmentPage() {
     );
   }
 
-  function toggleStudentSelection(studentName: string) {
+  function toggleStudentSelection(studentId: string) {
     setForm((current) => {
-      const isSelected = current.selectedStudents.includes(studentName);
+      const isSelected = current.selectedStudents.includes(studentId);
       return {
         ...current,
         selectedStudents: isSelected
-          ? current.selectedStudents.filter((name) => name !== studentName)
-          : [...current.selectedStudents, studentName],
+          ? current.selectedStudents.filter((id) => id !== studentId)
+          : [...current.selectedStudents, studentId],
       };
     });
   }
@@ -165,7 +432,7 @@ export default function TaskAssignmentPage() {
   function assignToAllStudents() {
     setForm((current) => ({
       ...current,
-      selectedStudents: studentList.map((student) => student.name),
+      selectedStudents: students.map((student) => student.id),
     }));
   }
 
@@ -181,6 +448,24 @@ export default function TaskAssignmentPage() {
           Assign work to individual students or groups. Track completion and provide feedback.
         </p>
       </section>
+
+      {taskSubmitSuccess ? (
+        <section className="rounded-2xl border border-[var(--signal-green)]/30 bg-[var(--signal-green)]/10 p-4 text-sm text-[var(--signal-green)]">
+          {taskSubmitSuccess}
+        </section>
+      ) : null}
+
+      {taskSubmitError ? (
+        <section className="rounded-2xl border border-[var(--signal-red)]/30 bg-[var(--signal-red)]/10 p-4 text-sm text-[var(--signal-red)]">
+          {taskSubmitError}
+        </section>
+      ) : null}
+
+      {tasksError && !isCreatingTask ? (
+        <section className="rounded-2xl border border-[var(--signal-red)]/30 bg-[var(--signal-red)]/10 p-4 text-sm text-[var(--signal-red)]">
+          {tasksError}
+        </section>
+      ) : null}
 
       {/* Create Task Form */}
       {isCreatingTask ? (
@@ -247,7 +532,7 @@ export default function TaskAssignmentPage() {
                 className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
               >
                 <option value="">No campaign</option>
-                {activeCampaigns.map((campaign) => (
+                {campaigns.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>
                     {campaign.title}
                   </option>
@@ -325,22 +610,32 @@ export default function TaskAssignmentPage() {
               <button
                 type="button"
                 onClick={assignToAllStudents}
+                disabled={studentsLoading || students.length === 0}
                 className="rounded-2xl border border-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-[var(--signal-blue)] transition hover:bg-[var(--signal-blue)]/10"
               >
                 Assign to all students
               </button>
               <div className="grid max-h-48 gap-2 overflow-y-auto rounded-2xl border border-[var(--border)] bg-white p-4">
-                {studentList.map((student) => (
-                  <label key={student.name} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={form.selectedStudents.includes(student.name)}
-                      onChange={() => toggleStudentSelection(student.name)}
-                      className="rounded"
-                    />
-                    <span className="text-sm">{student.name}</span>
-                  </label>
-                ))}
+                {studentsLoading ? <span className="text-sm text-[var(--muted)]">Loading students...</span> : null}
+                {!studentsLoading && studentsError ? (
+                  <span className="text-sm text-[var(--signal-red)]">{studentsError}</span>
+                ) : null}
+                {!studentsLoading && !studentsError && students.length === 0 ? (
+                  <span className="text-sm text-[var(--muted)]">No students found in the database.</span>
+                ) : null}
+                {!studentsLoading && !studentsError
+                  ? students.map((student) => (
+                      <label key={student.id} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={form.selectedStudents.includes(student.id)}
+                          onChange={() => toggleStudentSelection(student.id)}
+                          className="rounded"
+                        />
+                        <span className="text-sm">{student.name}</span>
+                      </label>
+                    ))
+                  : null}
               </div>
               <span className="text-xs text-[var(--muted)]">{form.selectedStudents.length} selected</span>
             </label>
@@ -348,9 +643,10 @@ export default function TaskAssignmentPage() {
             <div className="md:col-span-2 flex flex-wrap gap-3">
               <button
                 type="submit"
+                disabled={isSavingTask}
                 className="rounded-2xl bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92"
               >
-                Create task
+                {isSavingTask ? "Saving..." : "Create task"}
               </button>
               <button
                 type="button"
@@ -391,8 +687,8 @@ export default function TaskAssignmentPage() {
                 className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
               >
                 <option key="all" value="all">All students</option>
-                {studentList.map((student) => (
-                  <option key={student.name} value={student.name}>
+                {students.map((student) => (
+                  <option key={student.id} value={student.id}>
                     {student.name}
                   </option>
                 ))}
@@ -418,7 +714,11 @@ export default function TaskAssignmentPage() {
       {/* Task List */}
       {!isCreatingTask && (
         <section className="space-y-4">
-          {filteredTasks.length === 0 ? (
+          {tasksLoading ? (
+            <div className="rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-8 text-center">
+              <p className="text-sm text-[var(--muted)]">Loading tasks...</p>
+            </div>
+          ) : filteredTasks.length === 0 ? (
             <div className="rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-8 text-center">
               <p className="text-sm text-[var(--muted)]">No tasks found</p>
               <button
@@ -442,7 +742,7 @@ export default function TaskAssignmentPage() {
                       </span>
                       {task.campaignId && (
                         <span className="rounded px-2 py-1 text-xs font-medium text-[var(--foreground)] bg-white">
-                          {activeCampaigns.find((c) => c.id === task.campaignId)?.title}
+                          {campaigns.find((campaign) => campaign.id === task.campaignId)?.title}
                         </span>
                       )}
                     </div>

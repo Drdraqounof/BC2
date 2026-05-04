@@ -70,7 +70,9 @@ export default function StudentTaskDetailPage() {
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Due Date</p>
-                  <p className="mt-2 text-sm font-medium text-[var(--foreground)]">{new Date(task.dueDate).toLocaleDateString()}</p>
+                  <p className="mt-2 text-sm font-medium text-[var(--foreground)]">
+                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}
+                  </p>
                 </div>
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Campaign</p>
@@ -88,12 +90,12 @@ export default function StudentTaskDetailPage() {
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Resources</p>
-                  {task.resources?.length ? (
+                  {task.attachmentLinks?.length ? (
                     <ul className="mt-3 space-y-2 text-sm">
-                      {task.resources.map((resource) => (
-                        <li key={resource.id}>
-                          <a href={resource.url} target="_blank" rel="noreferrer" className="text-[var(--signal-blue)] hover:underline">
-                            {resource.title}
+                      {task.attachmentLinks.map((link) => (
+                        <li key={link}>
+                          <a href={link} target="_blank" rel="noreferrer" className="text-[var(--signal-blue)] hover:underline">
+                            {link}
                           </a>
                         </li>
                       ))}
