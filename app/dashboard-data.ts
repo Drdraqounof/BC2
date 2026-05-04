@@ -174,6 +174,7 @@ export type TaskRecord = {
   studentCount: number;
   completedCount: number;
   selectedStudents?: string[];
+  selectedStudentIds?: string[];
   status: "pending" | "in-progress" | "completed" | "revision-submitted";
 };
 
