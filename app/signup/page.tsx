@@ -3,8 +3,19 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, Suspense } from "react";
+import { PASSWORD_REQUIREMENTS_MESSAGE, validatePasswordStrength } from "@/lib/password-policy";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type RoleConfig = {
+  icon: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  features: string[];
+  color: string;
+  buttonColor: string;
+};
 
 function SignupContent() {
   const searchParams = useSearchParams();
@@ -39,8 +50,10 @@ function SignupContent() {
       return;
     }
 
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
+    const passwordValidation = validatePasswordStrength(formData.password);
+
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.error);
       return;
     }
 
@@ -98,7 +111,7 @@ function SignupContent() {
     }
   };
 
-  const roleConfig: Record<string, any> = {
+  const roleConfig: Record<string, RoleConfig> = {
     teacher: {
       icon: "👨‍🏫",
       title: "Teacher Portal",
@@ -221,10 +234,14 @@ function SignupContent() {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="At least 8 characters"
+                        minLength={8}
+                        placeholder="8+ chars, uppercase, number, symbol"
                         className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                         required
                       />
+                      <span className="mt-2 block text-xs text-slate-500">
+                        {PASSWORD_REQUIREMENTS_MESSAGE}
+                      </span>
                     </label>
 
                     <label className="block">

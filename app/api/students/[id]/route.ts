@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { validatePasswordStrength } from "@/lib/password-policy";
 
 type StudentRouteContext = {
   params: Promise<{ id: string }>;
@@ -65,6 +66,15 @@ export async function PATCH(
     if (!newPassword || !teacherPassword) {
       return NextResponse.json(
         { error: "Missing required fields (newPassword, teacherPassword)" },
+        { status: 400 }
+      );
+    }
+
+    const passwordValidation = validatePasswordStrength(newPassword);
+
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { PASSWORD_REQUIREMENTS_MESSAGE, validatePasswordStrength } from "@/lib/password-policy";
 
 type Student = {
   id: string;
@@ -53,7 +54,6 @@ type ClassroomFormState = {
 
 export default function StudentsPage() {
   const router = useRouter();
-  const [students, setStudents] = useState<Student[]>([]);
   const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [teacherEmail, setTeacherEmail] = useState("");
@@ -111,7 +111,6 @@ export default function StudentsPage() {
     }
 
     const data = await response.json();
-    setStudents(data);
     setAllStudents(data);
   };
 
@@ -150,10 +149,9 @@ export default function StudentsPage() {
     loadStudentDirectory();
   }, []);
 
-  // Filter students based on search query
-  useEffect(() => {
+  const students = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
-    const filtered = allStudents.filter((student) => {
+    return allStudents.filter((student) => {
       const matchesSearch =
         normalizedSearch === "" ||
         student.firstName.toLowerCase().includes(normalizedSearch) ||
@@ -166,8 +164,6 @@ export default function StudentsPage() {
 
       return matchesSearch && matchesClassroom;
     });
-
-    setStudents(filtered);
   }, [searchQuery, allStudents, classroomFilter]);
 
   const handleFieldChange = <K extends keyof FormState>(field: K, value: FormState[K]) => {
@@ -296,8 +292,10 @@ export default function StudentsPage() {
       return;
     }
 
-    if (!resetForm.newPassword || resetForm.newPassword.length < 6) {
-      setResetError("Password must be at least 6 characters");
+    const resetPasswordValidation = validatePasswordStrength(resetForm.newPassword);
+
+    if (!resetPasswordValidation.isValid) {
+      setResetError(resetPasswordValidation.error);
       setResetLoading(false);
       return;
     }
@@ -381,6 +379,14 @@ export default function StudentsPage() {
     // Validate form
     if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.password.trim()) {
       setError("All fields are required");
+      setIsLoading(false);
+      return;
+    }
+
+    const passwordValidation = validatePasswordStrength(form.password);
+
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.error);
       setIsLoading(false);
       return;
     }
@@ -600,9 +606,13 @@ export default function StudentsPage() {
                   type="password"
                   value={form.password}
                   onChange={(e) => handleFieldChange("password", e.target.value)}
-                  placeholder="••••••••"
+                  minLength={8}
+                  placeholder="8+ chars, uppercase, number, symbol"
                   className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
                 />
+                <span className="text-xs font-normal text-[var(--muted)]">
+                  {PASSWORD_REQUIREMENTS_MESSAGE}
+                </span>
               </label>
 
               <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)] animate-in fade-in slide-in-from-bottom duration-500" style={{animationDelay: "0.3s", animationFillMode: "both"}}>
@@ -964,9 +974,13 @@ export default function StudentsPage() {
                   type="password"
                   value={resetForm.newPassword}
                   onChange={(e) => setResetForm({ ...resetForm, newPassword: e.target.value })}
-                  placeholder="Enter new password"
+                  minLength={8}
+                  placeholder="8+ chars, uppercase, number, symbol"
                   className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-blue)]"
                 />
+                <span className="text-xs font-normal text-[var(--muted)]">
+                  {PASSWORD_REQUIREMENTS_MESSAGE}
+                </span>
               </label>
 
               <label className="flex flex-col gap-2 text-sm font-medium text-[var(--foreground)]">
