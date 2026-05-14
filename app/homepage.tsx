@@ -116,6 +116,12 @@ export default function HomePage() {
                 Benefits
               </a>
               <Link
+                href="/role-select?action=signup"
+                className="rounded-lg border border-stone-300 bg-white px-5 py-2.5 font-semibold text-black transition-colors hover:border-teal-300 hover:bg-teal-50 shadow-sm"
+              >
+                Create Account
+              </Link>
+              <Link
                 href="/login"
                 className="rounded-lg bg-amber-200 px-5 py-2.5 font-semibold text-black transition-colors hover:bg-amber-300 shadow-sm"
               >
@@ -139,16 +145,16 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/features"
+                  href="/role-select?action=signup"
                   className="rounded-lg bg-amber-200 px-8 py-3.5 text-center font-semibold text-black transition-all hover:bg-amber-300 hover:shadow-lg shadow-sm"
                 >
-                  Explore Platform
+                  Create Account
                 </Link>
                 <Link
-                  href="/active-campaigns"
+                  href="/login"
                   className="rounded-lg border-2 border-stone-300 bg-white px-8 py-3.5 text-center font-semibold text-black transition hover:border-teal-300 hover:bg-teal-50"
                 >
-                  View Demo
+                  Sign In
                 </Link>
               </div>
             </div>

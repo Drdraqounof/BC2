@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 const roles = [
   {
@@ -21,16 +21,17 @@ const roles = [
   },
 ];
 
-export default function RoleSelectPage() {
+function RoleSelectContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const action = searchParams.get("action") === "signup" ? "signup" : "login";
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRole(roleId);
     setIsLoading(true);
-    // Redirect to login with role parameter
-    router.push(`/login?role=${roleId}`);
+    router.push(`/${action}?role=${roleId}`);
   };
 
   return (
@@ -62,13 +63,15 @@ export default function RoleSelectPage() {
             {/* Title Section */}
             <div className="mb-12 text-center">
               <p className="text-sm uppercase tracking-[0.24em] text-teal-600 font-semibold">
-                Get Started
+                {action === "signup" ? "Create Account" : "Get Started"}
               </p>
               <h1 className="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.04em] text-slate-950">
                 Choose your role
               </h1>
               <p className="mt-4 text-base text-slate-600 max-w-2xl mx-auto">
-                Select your role to access the appropriate workspace and features tailored to your needs.
+                {action === "signup"
+                  ? "Select a role to create a new account with the right onboarding form."
+                  : "Select your role to sign in to the appropriate workspace and features tailored to your needs."}
               </p>
             </div>
 
@@ -111,7 +114,11 @@ export default function RoleSelectPage() {
                         ? `bg-gradient-to-r ${role.color} text-white`
                         : `bg-stone-100 text-slate-700 group-hover:bg-stone-200`
                     }`}>
-                      {selectedRole === role.id ? "Redirecting..." : "Continue as " + role.title}
+                      {selectedRole === role.id
+                        ? "Redirecting..."
+                        : action === "signup"
+                          ? "Create " + role.title + " Account"
+                          : "Continue as " + role.title}
                     </div>
                   </div>
                 </button>
@@ -121,9 +128,12 @@ export default function RoleSelectPage() {
             {/* Footer */}
             <div className="mt-12 text-center">
               <p className="text-sm text-slate-600">
-                Already have an account?{" "}
-                <Link href="/login" className="font-semibold text-teal-600 hover:text-teal-700 underline">
-                  Sign in
+                {action === "signup" ? "Already have an account? " : "Need an account? "}
+                <Link
+                  href={action === "signup" ? "/login" : "/role-select?action=signup"}
+                  className="font-semibold text-teal-600 hover:text-teal-700 underline"
+                >
+                  {action === "signup" ? "Sign in" : "Create one"}
                 </Link>
               </p>
             </div>
@@ -131,5 +141,13 @@ export default function RoleSelectPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function RoleSelectPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RoleSelectContent />
+    </Suspense>
   );
 }

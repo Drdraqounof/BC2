@@ -10,8 +10,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const role = searchParams.get("role") || "student";
-  
-  const [step, setStep] = useState<"email" | "password" | "info">("email");
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,7 +18,6 @@ function SignupContent() {
     firstName: "",
     lastName: "",
     school: "",
-    subject: "",
     grade: "",
     classroomCode: "",
   });
@@ -31,45 +29,26 @@ function SignupContent() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNextStep = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (step === "email") {
-      const trimmedEmail = formData.email.trim();
-
-      if (!trimmedEmail) {
-        setError("Please enter your email");
-        return;
-      }
-
-      if (!EMAIL_PATTERN.test(trimmedEmail)) {
-        setError("Please enter a valid email address, such as name@gmail.com.");
-        return;
-      }
-
-      setFormData((prev) => ({ ...prev, email: trimmedEmail }));
-      setStep("password");
-    } else if (step === "password") {
-      if (!formData.password) {
-        setError("Please enter a password");
-        return;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-      if (formData.password.length < 8) {
-        setError("Password must be at least 8 characters");
-        return;
-      }
-      setStep("info");
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const trimmedEmail = formData.email.trim();
+
+    if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      setError("Please enter a valid email address, such as name@gmail.com.");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -80,7 +59,7 @@ function SignupContent() {
           body: JSON.stringify({
             firstName: formData.firstName,
             lastName: formData.lastName,
-            email: formData.email,
+            email: trimmedEmail,
             password: formData.password,
             grade: formData.grade,
             classroomCode: formData.classroomCode,
@@ -100,9 +79,9 @@ function SignupContent() {
           body: JSON.stringify({
             firstName: formData.firstName,
             lastName: formData.lastName,
-            email: formData.email,
+            email: trimmedEmail,
+            password: formData.password,
             school: formData.school,
-            subject: formData.subject,
           }),
         });
 
@@ -215,164 +194,139 @@ function SignupContent() {
                   </div>
                 )}
 
-                <form onSubmit={step === "info" ? handleSubmit : handleNextStep} className="space-y-4">
-                  {step === "email" && (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-slate-700">
+                      Email
+                    </span>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="you@example.com"
+                      pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                      className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
+                      required
+                    />
+                  </label>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block text-sm font-medium text-slate-700">
-                        Email
+                        Create Password
                       </span>
                       <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
+                        type="password"
+                        name="password"
+                        value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="you@example.com"
-                        pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                        placeholder="At least 8 characters"
+                        className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
+                        required
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Confirm Password
+                      </span>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        placeholder="Confirm your password"
+                        className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
+                        required
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        First Name
+                      </span>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        placeholder="John"
+                        className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
+                        required
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        Last Name
+                      </span>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        placeholder="Doe"
+                        className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
+                        required
+                      />
+                    </label>
+                  </div>
+
+                  {role === "teacher" && (
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-slate-700">
+                        School
+                      </span>
+                      <input
+                        type="text"
+                        name="school"
+                        value={formData.school}
+                        onChange={handleInputChange}
+                        placeholder="Your school name"
                         className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                         required
                       />
                     </label>
                   )}
 
-                  {step === "password" && (
+                  {role === "student" && (
                     <>
                       <label className="block">
                         <span className="mb-2 block text-sm font-medium text-slate-700">
-                          Create Password
+                          Grade
                         </span>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
+                        <select
+                          name="grade"
+                          value={formData.grade}
                           onChange={handleInputChange}
-                          placeholder="At least 8 characters"
                           className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                           required
-                        />
+                        >
+                          <option value="">Select your grade</option>
+                          <option value="9">Grade 9</option>
+                          <option value="10">Grade 10</option>
+                          <option value="11">Grade 11</option>
+                          <option value="12">Grade 12</option>
+                        </select>
                       </label>
 
                       <label className="block">
                         <span className="mb-2 block text-sm font-medium text-slate-700">
-                          Confirm Password
+                          Classroom Code
                         </span>
                         <input
-                          type="password"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
+                          type="text"
+                          name="classroomCode"
+                          value={formData.classroomCode}
                           onChange={handleInputChange}
-                          placeholder="Confirm your password"
+                          placeholder="Enter your classroom code"
                           className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
                           required
                         />
                       </label>
-                    </>
-                  )}
-
-                  {step === "info" && (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className="block">
-                          <span className="mb-2 block text-sm font-medium text-slate-700">
-                            First Name
-                          </span>
-                          <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            placeholder="John"
-                            className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                            required
-                          />
-                        </label>
-
-                        <label className="block">
-                          <span className="mb-2 block text-sm font-medium text-slate-700">
-                            Last Name
-                          </span>
-                          <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            placeholder="Doe"
-                            className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                            required
-                          />
-                        </label>
-                      </div>
-
-                      {role === "teacher" && (
-                        <>
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-slate-700">
-                              School
-                            </span>
-                            <input
-                              type="text"
-                              name="school"
-                              value={formData.school}
-                              onChange={handleInputChange}
-                              placeholder="Your school name"
-                              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                              required
-                            />
-                          </label>
-
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-slate-700">
-                              Subject
-                            </span>
-                            <input
-                              type="text"
-                              name="subject"
-                              value={formData.subject}
-                              onChange={handleInputChange}
-                              placeholder="Subject you teach"
-                              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                              required
-                            />
-                          </label>
-                        </>
-                      )}
-
-                      {role === "student" && (
-                        <>
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-slate-700">
-                              Grade
-                            </span>
-                            <select
-                              name="grade"
-                              value={formData.grade}
-                              onChange={handleInputChange}
-                              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                              required
-                            >
-                              <option value="">Select your grade</option>
-                              <option value="9">Grade 9</option>
-                              <option value="10">Grade 10</option>
-                              <option value="11">Grade 11</option>
-                              <option value="12">Grade 12</option>
-                            </select>
-                          </label>
-
-                          <label className="block">
-                            <span className="mb-2 block text-sm font-medium text-slate-700">
-                              Classroom Code
-                            </span>
-                            <input
-                              type="text"
-                              name="classroomCode"
-                              value={formData.classroomCode}
-                              onChange={handleInputChange}
-                              placeholder="Enter your classroom code"
-                              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:bg-white"
-                              required
-                            />
-                          </label>
-                        </>
-                      )}
                     </>
                   )}
 
@@ -381,7 +335,7 @@ function SignupContent() {
                     disabled={isLoading}
                     className={`w-full rounded-2xl px-5 py-3 text-center text-sm font-semibold text-white transition-colors ${config.buttonColor} disabled:opacity-50`}
                   >
-                    {isLoading ? "Creating..." : step === "info" ? "Create Account" : "Continue"}
+                    {isLoading ? "Creating..." : "Create Account"}
                   </button>
                 </form>
 

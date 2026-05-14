@@ -45,34 +45,29 @@ function LoginContent() {
       return;
     }
 
+    if (!formData.password) {
+      addToast("Please enter your password.", "error", 5000);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const destination = role === "student" ? "/student" : "/active-campaigns";
 
-      if (role === "teacher") {
-        const teacherResponse = await fetch(`/api/teachers?email=${encodeURIComponent(trimmedEmail)}`, {
-          method: "GET",
-          cache: "no-store",
-        });
+      const authResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          password: formData.password,
+          role,
+        }),
+      });
 
-        if (!teacherResponse.ok) {
-          throw new Error("We could not find a teacher account for this email. Please create an account before signing in.");
-        }
-      } else {
-        const studentResponse = await fetch(`/api/students?email=${encodeURIComponent(trimmedEmail)}`, {
-          method: "GET",
-          cache: "no-store",
-        });
-
-        if (!studentResponse.ok) {
-          throw new Error("We could not find a student account for this email. Please create an account before signing in.");
-        }
-
-        const matchedStudents = (await studentResponse.json()) as Array<{ id: string }>;
-        if (matchedStudents.length === 0) {
-          throw new Error("We could not find a student account for this email. Please create an account before signing in.");
-        }
+      if (!authResponse.ok) {
+        const errorData = (await authResponse.json()) as { error?: string };
+        throw new Error(errorData.error || "We could not sign you in with those credentials.");
       }
 
       if (role === "teacher") {
@@ -232,7 +227,7 @@ function LoginContent() {
                 </form>
 
                 <div className="text-center text-sm text-slate-600">
-                  Don't have a password?{" "}
+                  Need an account?{" "}
                   <button
                     type="button"
                     onClick={() => {

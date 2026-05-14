@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 function formatTeacherResponse(teacher: {
   id: string;
@@ -55,12 +56,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { firstName, lastName, email, school, subject } = body;
+    const { firstName, lastName, email, password, school } = body;
 
     // Validate required fields
-    if (!firstName || !lastName || !email) {
+    if (!firstName || !lastName || !email || !password) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields (firstName, lastName, email, password)" },
         { status: 400 }
       );
     }
@@ -87,10 +88,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create teacher
     const teacher = await prisma.teacher.create({
       data: {
         email,
+        password: hashedPassword,
         firstName,
         lastName,
         schoolId: schoolRecord?.id,
