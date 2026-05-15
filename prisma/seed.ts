@@ -4,6 +4,8 @@ import bcryptjs from "bcryptjs";
 
 async function main() {
   try {
+    const teacherPassword = await bcryptjs.hash("password123", 10);
+
     // Create the shared school record first so teacher and student records can reference it.
     const school = await prisma.school.upsert({
       where: { name: "Launchpad Philadelphia" },
@@ -15,12 +17,14 @@ async function main() {
     const teacher = await prisma.teacher.upsert({
       where: { email: "rob@launchpadphilly.org" },
       update: {
+        password: teacherPassword,
         firstName: "Rob",
         lastName: "Launchpad",
         schoolId: school.id,
       },
       create: {
         email: "rob@launchpadphilly.org",
+        password: teacherPassword,
         firstName: "Rob",
         lastName: "Launchpad",
         schoolId: school.id,
