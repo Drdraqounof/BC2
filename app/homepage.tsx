@@ -355,8 +355,16 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="border-t border-stone-200 bg-stone-50/80 py-12">
-          <div className="max-w-7xl mx-auto px-6 text-center text-sm text-black">
-            <p>© 2024 EduPanel. Supporting educators in evidence-based student intervention.</p>
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+              <p className="text-sm text-black">© 2024 EduPanel. Supporting educators in evidence-based student intervention.</p>
+              <Link 
+                href="/privacy-policy" 
+                className="text-sm text-black/70 hover:text-black transition font-medium"
+              >
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         </footer>
       </div>

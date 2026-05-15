@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "EduPanel",
   description:
     "Homepage for EduPanel, a classroom action system that helps teachers launch interventions and track student progress.",
+  verification: {
+    google: "google-site-verification=1ygmn0ZftyGUtDXTTFBZMdbPUsBlZSIxeZEXlKu9Y-s", // Replace with your actual Google verification code
+  },
 };
 
 export default function RootLayout({
