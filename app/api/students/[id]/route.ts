@@ -74,7 +74,7 @@ export async function PATCH(
 
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: passwordValidation.error },
+        { error: passwordValidation.error || "Password does not meet requirements" },
         { status: 400 }
       );
     }

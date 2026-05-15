@@ -53,7 +53,7 @@ function SignupContent() {
     const passwordValidation = validatePasswordStrength(formData.password);
 
     if (!passwordValidation.isValid) {
-      setError(passwordValidation.error);
+      setError(passwordValidation.error || "Password does not meet requirements");
       return;
     }
 
