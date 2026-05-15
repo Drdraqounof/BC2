@@ -295,7 +295,7 @@ export default function StudentsPage() {
     const resetPasswordValidation = validatePasswordStrength(resetForm.newPassword);
 
     if (!resetPasswordValidation.isValid) {
-      setResetError(resetPasswordValidation.error || "Password does not meet requirements");
+      setResetError(resetPasswordValidation.error ?? "Password does not meet requirements");
       setResetLoading(false);
       return;
     }
