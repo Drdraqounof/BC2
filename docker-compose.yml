@@ -23,14 +23,32 @@ services:
       dockerfile: Dockerfile
     container_name: edupanel-app
     restart: unless-stopped
+    init: true
     depends_on:
       db:
         condition: service_healthy
     environment:
       NODE_ENV: production
+      PORT: 3000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-EduPanel}
       DATABASE_URL: postgresql://${POSTGRES_USER:-edupanel}:${POSTGRES_PASSWORD:-edupanel}@db:5432/${POSTGRES_DB:-edupanel}?schema=public
+    command: sh -c "npx prisma migrate deploy && npm run start"
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e 'fetch(\"http://127.0.0.1:3000\").then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
 volumes:
   postgres_data:

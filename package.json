@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0 -p 3000",
     "postinstall": "prisma generate",
-    "lint": "eslint",
+    "lint": "eslint .",
+    "verify": "npm run lint && npm run prisma:validate && npm run build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "prisma:generate": "prisma generate",
