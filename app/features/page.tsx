@@ -135,8 +135,8 @@ export default function FeaturesPage() {
 
       <div className="relative z-10">
         {/* Navigation */}
-        <nav className="sticky top-0 backdrop-blur-md bg-white/70 border-b border-slate-200/50 z-50">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <nav className="sticky top-0 z-50 border-b border-slate-200/50 bg-white/70 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">EP</span>
@@ -152,32 +152,46 @@ export default function FeaturesPage() {
                 Login
               </Link>
             </div>
+            <div className="flex w-full gap-3 md:hidden">
+              <Link
+                href="/"
+                className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-900 transition hover:bg-slate-50"
+              >
+                Home
+              </Link>
+              <Link
+                href="/login"
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                Login
+              </Link>
+            </div>
           </div>
         </nav>
 
         {/* Hero Section */}
-        <section className="max-w-6xl mx-auto px-6 py-20 md:py-24">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 md:py-24">
           <div className="max-w-4xl">
             <div className="inline-block mb-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider">
               The Feature Set
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
+            <h1 className="mb-6 text-4xl font-bold leading-tight text-slate-900 sm:text-5xl md:text-6xl">
               From insight to action in minutes.
             </h1>
-            <p className="text-xl text-slate-600 leading-relaxed max-w-3xl">
+            <p className="max-w-3xl text-lg leading-relaxed text-slate-600 sm:text-xl">
               EduPanel gives teachers a structured system for identifying problems, launching interventions, and tracking whether student outcomes improve. Six capabilities. One purpose: help you move from observation to measurable action.
             </p>
           </div>
         </section>
 
         {/* Design Principles */}
-        <section className="max-w-6xl mx-auto px-6 pb-20">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8">Built on Three Principles</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
+          <h2 className="mb-8 text-3xl font-bold text-slate-900">Built on Three Principles</h2>
+          <div className="grid gap-6 md:grid-cols-3">
             {featurePrinciples.map((principle) => (
               <div
                 key={principle}
-                className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-8 border border-slate-700 hover:border-blue-400 transition"
+                className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white transition hover:border-blue-400 sm:p-8"
               >
                 <div className="text-4xl mb-4">💡</div>
                 <p className="text-lg font-semibold">{principle}</p>
@@ -187,15 +201,15 @@ export default function FeaturesPage() {
         </section>
 
         {/* Workflow Section */}
-        <section className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-20">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">The EduPanel Workflow</h2>
-              <p className="text-xl text-slate-300">
+        <section className="bg-gradient-to-r from-slate-900 to-slate-800 py-16 text-white sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="mb-12 text-center sm:mb-16">
+              <h2 className="mb-4 text-3xl font-bold sm:text-4xl md:text-5xl">The EduPanel Workflow</h2>
+              <p className="text-lg text-slate-300 sm:text-xl">
                 Four steps from signal to measurable outcome.
               </p>
             </div>
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid gap-6 md:grid-cols-4">
               {workflow.map((item, idx) => (
                 <div key={item.step} className="relative">
                   <div className={`${item.color} rounded-full w-16 h-16 flex items-center justify-center font-bold text-2xl text-white mb-4 mx-auto`}>
@@ -217,18 +231,18 @@ export default function FeaturesPage() {
         </section>
 
         {/* Features Grid */}
-        <section className="max-w-6xl mx-auto px-6 py-20">
-          <div className="mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Six Capabilities</h2>
-            <p className="text-xl text-slate-600">
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl">Six Capabilities</h2>
+            <p className="text-lg text-slate-600 sm:text-xl">
               Everything a teacher needs to turn observations into interventions.
             </p>
           </div>
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
             {featureSections.map((section) => (
               <div
                 key={section.title}
-                className="bg-white rounded-2xl border border-slate-200 p-8 hover:shadow-xl transition-shadow"
+                className="rounded-2xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-xl sm:p-8"
               >
                 <div className="flex items-start gap-4 mb-6">
                   <div className="text-5xl">{section.icon}</div>
@@ -236,12 +250,12 @@ export default function FeaturesPage() {
                     <p className="text-xs uppercase tracking-widest font-semibold text-slate-500 mb-2">
                       Feature
                     </p>
-                    <h3 className="text-3xl font-bold text-slate-900">
+                    <h3 className="text-2xl font-bold text-slate-900 sm:text-3xl">
                       {section.title}
                     </h3>
                   </div>
                 </div>
-                <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                <p className="mb-6 text-base leading-relaxed text-slate-600 sm:text-lg">
                   {section.summary}
                 </p>
                 <ul className="space-y-3">

@@ -125,7 +125,7 @@ export default function HomePage() {
       <div className="relative z-10">
         {/* Navigation */}
         <nav className="sticky top-0 z-50 border-b border-stone-200/60 bg-white/75 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-teal-700 to-amber-500 shadow-sm">
                 <span className="font-bold text-sm text-white">EP</span>
@@ -152,19 +152,33 @@ export default function HomePage() {
                 Sign In
               </Link>
             </div>
+            <div className="flex w-full gap-3 md:hidden">
+              <Link
+                href="/role-select?action=signup"
+                className="flex-1 rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-center text-sm font-semibold text-black transition-colors hover:border-teal-300 hover:bg-teal-50 shadow-sm"
+              >
+                Create Account
+              </Link>
+              <Link
+                href="/login"
+                className="flex-1 rounded-lg bg-amber-200 px-4 py-2.5 text-center text-sm font-semibold text-black transition-colors hover:bg-amber-300 shadow-sm"
+              >
+                Sign In
+              </Link>
+            </div>
           </div>
         </nav>
 
         {/* Hero Section */}
-        <section className="max-w-7xl mx-auto px-6 py-24 md:py-32">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 md:py-24 lg:py-32">
+          <div className="grid items-center gap-10 md:grid-cols-2 lg:gap-16">
             <div>
               <div className="mb-6 inline-block">
               </div>
-              <h1 className="mb-6 text-5xl md:text-6xl font-bold leading-tight text-black">
+              <h1 className="mb-6 text-4xl font-bold leading-tight text-black sm:text-5xl md:text-6xl">
                 From Data to Impact
               </h1>
-              <p className="mb-8 max-w-xl text-lg leading-relaxed text-black">
+              <p className="mb-8 max-w-xl text-base leading-relaxed text-black sm:text-lg">
                 EduPanel transforms student data into structured interventions. Identify at-risk students, launch targeted support, and measure outcomes—all in one platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -184,7 +198,7 @@ export default function HomePage() {
             </div>
             <div className="relative animate-scale-up">
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-teal-300 to-amber-300 opacity-25 blur-2xl"></div>
-              <div className="relative rounded-2xl border border-stone-200 bg-white p-8 shadow-2xl transition-all duration-300 hover:shadow-2xl hover:scale-105">
+              <div className="relative rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl transition-all duration-300 hover:shadow-2xl hover:scale-105 sm:p-8">
                 <div className="space-y-6">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-widest text-amber-700 bg-amber-50 px-2 py-1 rounded inline-block mb-3">
@@ -207,7 +221,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6 pt-6 border-t border-stone-200">
+                  <div className="grid grid-cols-2 gap-4 border-t border-stone-200 pt-6 sm:gap-6">
                     <div>
                       <div className="text-2xl font-bold text-black">8</div>
                       <div className="text-xs text-black/60 font-medium">Students Enrolled</div>
@@ -224,12 +238,12 @@ export default function HomePage() {
         </section>
 
         {/* Stats Section */}
-        <section className="bg-gradient-to-r from-stone-100 via-amber-50 to-teal-100 py-20 text-black">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="grid md:grid-cols-3 gap-12">
+        <section className="bg-gradient-to-r from-stone-100 via-amber-50 to-teal-100 py-16 text-black sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="grid gap-10 md:grid-cols-3 md:gap-12">
               {stats.map((stat) => (
                 <div key={stat.label}>
-                  <div className="mb-3 text-5xl font-bold text-amber-600">
+                  <div className="mb-3 text-4xl font-bold text-amber-600 sm:text-5xl">
                     {stat.value}
                   </div>
                   <div className="mb-2 text-sm font-semibold uppercase tracking-widest text-black">
@@ -243,20 +257,20 @@ export default function HomePage() {
         </section>
 
         {/* Problems Section */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
-          <div className="text-center mb-16">
-            <h2 className="mb-4 text-4xl md:text-5xl font-bold text-black">
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 md:py-24">
+          <div className="mb-12 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
               Common Challenges
             </h2>
             <p className="text-lg text-black/75 max-w-2xl mx-auto">
               Educators today face obstacles that existing tools don't address.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
             {problems.map((p, idx) => (
               <div
                 key={p.problem}
-                className="rounded-xl border-2 border-stone-200 bg-white p-8 hover:border-teal-300 transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-1 animate-slide-up cursor-pointer"
+                className="rounded-xl border-2 border-stone-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-teal-300 hover:shadow-lg animate-slide-up cursor-pointer sm:p-8"
                 style={{ animationDelay: `${idx * 100}ms` }}
               >
                 <div className="text-4xl mb-4">{p.icon}</div>
@@ -268,21 +282,21 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="bg-stone-100/85 py-24">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="mb-4 text-4xl md:text-5xl font-bold text-black">
+        <section id="features" className="bg-stone-100/85 py-16 sm:py-20 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mb-12 text-center sm:mb-16">
+              <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
                 Platform Capabilities
               </h2>
               <p className="text-lg text-black/75 max-w-2xl mx-auto">
                 Six core features designed to streamline intervention management and improve student outcomes.
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
               {features.map((feature, idx) => (
                 <div
                   key={feature.title}
-                  className="rounded-xl border border-stone-200 bg-white p-8 hover:shadow-lg hover:border-teal-300 transition-all duration-300 hover:scale-105 hover:-translate-y-1 animate-slide-up cursor-pointer"
+                  className="rounded-xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-teal-300 hover:shadow-lg animate-slide-up cursor-pointer sm:p-8"
                   style={{ animationDelay: `${idx * 100}ms` }}
                 >
                   <div className="text-4xl mb-4">{feature.icon}</div>
@@ -299,20 +313,20 @@ export default function HomePage() {
         </section>
 
         {/* User Stories Section */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
-          <div className="text-center mb-16">
-            <h2 className="mb-4 text-4xl md:text-5xl font-bold text-black">
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 md:py-24">
+          <div className="mb-12 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
               How EduPanel Works In Practice
             </h2>
             <p className="text-lg text-black/75 max-w-2xl mx-auto">
               Real workflows showing how educators and students benefit from structured interventions.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid gap-6 md:grid-cols-3 md:gap-8">
             {userStories.map((story, idx) => (
               <div
                 key={story.persona}
-                className={`rounded-2xl border-2 border-stone-200 bg-gradient-to-br ${story.color} p-8 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-2 animate-slide-up cursor-pointer`}
+                className={`rounded-2xl border-2 border-stone-200 bg-gradient-to-br ${story.color} p-6 transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:shadow-lg animate-slide-up cursor-pointer sm:p-8`}
                 style={{ animationDelay: `${idx * 150}ms` }}
               >
                 <div className="mb-6">
@@ -333,15 +347,15 @@ export default function HomePage() {
         </section>
 
         {/* Campaign Types */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
-          <div className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-teal-50 p-12">
-            <h2 className="mb-4 text-3xl md:text-4xl font-bold text-black">
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 md:py-24">
+          <div className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-teal-50 p-6 sm:p-8 lg:p-12">
+            <h2 className="mb-4 text-3xl font-bold text-black md:text-4xl">
               Campaign Templates
             </h2>
             <p className="mb-10 max-w-2xl text-black/75">
               Launch structured interventions for any student support scenario. Pre-built templates accelerate deployment while maintaining flexibility.
             </p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {campaignTypes.map((example, idx) => (
                 <div
                   key={example}
@@ -356,16 +370,16 @@ export default function HomePage() {
         </section>
 
         {/* Benefits Section */}
-        <section id="benefits" className="bg-gradient-to-r from-stone-100 via-amber-50 to-stone-200 py-24 text-black">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="mb-4 text-4xl md:text-5xl font-bold text-black">
+        <section id="benefits" className="bg-gradient-to-r from-stone-100 via-amber-50 to-stone-200 py-16 text-black sm:py-20 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mb-12 text-center sm:mb-16">
+              <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
                 Why Educators Choose EduPanel
               </h2>
             </div>
-            <div className="grid md:grid-cols-2 gap-12">
+            <div className="grid gap-8 md:grid-cols-2 md:gap-12">
               {benefits.map((benefit, idx) => (
-                <div key={benefit.number} className="flex gap-8 animate-slide-up" style={{ animationDelay: `${idx * 150}ms` }}>
+                <div key={benefit.number} className="flex gap-5 animate-slide-up sm:gap-8" style={{ animationDelay: `${idx * 150}ms` }}>
                   <div className="flex-shrink-0">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-teal-600 to-amber-600 text-lg font-bold text-white">
                       {benefit.number}
@@ -386,9 +400,9 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
-          <div className="rounded-2xl bg-gradient-to-r from-amber-100 via-stone-50 to-teal-100 p-12 md:p-16 text-center text-black shadow-lg">
-            <h2 className="mb-6 text-4xl md:text-5xl font-bold text-black">
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 md:py-24">
+          <div className="rounded-2xl bg-gradient-to-r from-amber-100 via-stone-50 to-teal-100 p-6 text-center text-black shadow-lg sm:p-8 md:p-12 lg:p-16">
+            <h2 className="mb-6 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
               Transform Student Support
             </h2>
             <p className="mx-auto mb-10 max-w-2xl text-lg text-black/75">
@@ -413,8 +427,8 @@ export default function HomePage() {
 
         {/* Footer */}
         <footer className="border-t border-stone-200 bg-stone-50/80 py-12">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mb-6 flex flex-col items-center justify-between gap-6 md:flex-row">
               <p className="text-sm text-black">© 2024 EduPanel. Supporting educators in evidence-based student intervention.</p>
               <Link 
                 href="/privacy-policy" 

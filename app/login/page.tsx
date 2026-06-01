@@ -134,8 +134,8 @@ function LoginContent() {
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-amber-100 opacity-25 mix-blend-multiply blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-6">
-        <header className="flex items-center justify-between rounded-full border border-stone-200/60 bg-white/75 px-5 py-3 backdrop-blur-md">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-6">
+        <header className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-stone-200/60 bg-white/75 px-4 py-3 backdrop-blur-md sm:rounded-full sm:px-5">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-700 to-amber-500">
               <span className="text-sm font-bold text-white">EP</span>
@@ -149,17 +149,25 @@ function LoginContent() {
               Change Role
             </Link>
           </nav>
+          <div className="flex w-full gap-3 md:hidden">
+            <Link href="/features" className="flex-1 rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-900 transition hover:bg-stone-50">
+              Features
+            </Link>
+            <Link href="/role-select" className="flex-1 rounded-lg bg-teal-600 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-teal-700">
+              Change Role
+            </Link>
+          </div>
         </header>
 
-        <div className="flex flex-1 items-center justify-center py-12">
-          <section className="grid w-full max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="flex flex-1 items-center justify-center py-8 sm:py-12">
+          <section className="grid w-full max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
             {/* Left Panel - Info */}
-            <div className="rounded-[32px] bg-slate-950 p-8 text-white shadow-[0_24px_70px_rgba(17,24,39,0.28)] md:p-10">
+            <div className="rounded-[28px] bg-slate-950 p-6 text-white shadow-[0_24px_70px_rgba(17,24,39,0.28)] sm:rounded-[32px] sm:p-8 md:p-10">
               <div className="text-4xl mb-4">{config.icon}</div>
               <p className="text-sm uppercase tracking-[0.24em] text-teal-200">
                 {role.toUpperCase()}
               </p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
+              <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
                 {config.title}
               </h1>
               <p className="mt-4 text-sm leading-7 text-slate-300">
@@ -175,13 +183,13 @@ function LoginContent() {
             </div>
 
             {/* Right Panel - Form */}
-            <div className="rounded-[32px] border border-stone-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-10">
+            <div className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:rounded-[32px] sm:p-8 md:p-10">
               <div className="space-y-5">
                 <div>
                   <p className="text-sm uppercase tracking-[0.18em] text-slate-500">
                     Sign In
                   </p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-slate-900">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-900 sm:text-3xl">
                     Welcome back
                   </h2>
                 </div>
@@ -241,7 +249,7 @@ function LoginContent() {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between text-sm text-slate-500 pt-4 border-t border-stone-200">
+                <div className="flex flex-col gap-3 border-t border-stone-200 pt-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
                   <Link href="/features" className="hover:text-slate-900">
                     View product features
                   </Link>

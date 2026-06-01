@@ -42,9 +42,9 @@ function RoleSelectContent() {
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-amber-100 opacity-25 mix-blend-multiply blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-6">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-6">
         {/* Header */}
-        <header className="flex items-center justify-between rounded-full border border-stone-200/60 bg-white/75 px-5 py-3 backdrop-blur-md">
+        <header className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-stone-200/60 bg-white/75 px-4 py-3 backdrop-blur-md sm:rounded-full sm:px-5">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-700 to-amber-500">
               <span className="text-sm font-bold text-white">EP</span>
@@ -55,17 +55,25 @@ function RoleSelectContent() {
             <Link href="/">Home</Link>
             <Link href="/features">Features</Link>
           </nav>
+          <div className="flex w-full gap-3 md:hidden">
+            <Link href="/" className="flex-1 rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-900 transition hover:bg-stone-50">
+              Home
+            </Link>
+            <Link href="/features" className="flex-1 rounded-lg bg-teal-600 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-teal-700">
+              Features
+            </Link>
+          </div>
         </header>
 
         {/* Content */}
-        <div className="flex flex-1 items-center justify-center py-12">
+        <div className="flex flex-1 items-center justify-center py-8 sm:py-12">
           <section className="w-full max-w-4xl">
             {/* Title Section */}
-            <div className="mb-12 text-center">
+            <div className="mb-10 text-center sm:mb-12">
               <p className="text-sm uppercase tracking-[0.24em] text-teal-600 font-semibold">
                 {action === "signup" ? "Create Account" : "Get Started"}
               </p>
-              <h1 className="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.04em] text-slate-950">
+              <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-5xl">
                 Choose your role
               </h1>
               <p className="mt-4 text-base text-slate-600 max-w-2xl mx-auto">
@@ -76,7 +84,7 @@ function RoleSelectContent() {
             </div>
 
             {/* Role Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
               {roles.map((role) => (
                 <button
                   key={role.id}
@@ -94,9 +102,9 @@ function RoleSelectContent() {
                   />
 
                   {/* Card content */}
-                  <div className="relative p-8 flex flex-col items-center text-center">
+                  <div className="relative flex flex-col items-center p-6 text-center sm:p-8">
                     {/* Icon */}
-                    <div className="text-6xl mb-4">{role.icon}</div>
+                    <div className="mb-4 text-5xl sm:text-6xl">{role.icon}</div>
 
                     {/* Title */}
                     <h2 className="text-2xl font-semibold text-slate-900 mb-3">
