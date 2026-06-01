@@ -57,6 +57,30 @@ const features = [
   },
 ];
 
+const userStories = [
+  {
+    persona: "Sarah Chen",
+    role: "Secondary Math Teacher",
+    story: "Every Friday, Sarah uses EduPanel to identify students falling behind in the current unit. The system flags 5 students with missing assignments and shows attendance patterns. Instead of spending 90 minutes crafting individual emails, she creates a campaign in 5 minutes, assigns targeted tasks, and AI generates personalized outreach. By Monday, she sees which students engaged with the support—and can adjust her approach.",
+    insight: "From reaction to strategy",
+    color: "from-blue-50 to-blue-100",
+  },
+  {
+    persona: "Jordan Martinez",
+    role: "High School Student",
+    story: "Jordan logs into EduPanel's student dashboard and sees 3 assigned tasks tied to an Attendance Improvement campaign. The interface clearly shows he's at 72% progress and what he needs to complete. He submits evidence of his work, gets feedback from his teacher within 24 hours, and watches his progress bar fill up. The milestone notifications feel like wins, not surveillance.",
+    insight: "From tracking to growth",
+    color: "from-green-50 to-green-100",
+  },
+  {
+    persona: "Dr. James Wilson",
+    role: "School Administrator",
+    story: "James reviews teacher reports in EduPanel to understand school-wide intervention patterns. He sees that attendance campaigns have a 78% success rate but grade recovery campaigns need refinement. He schedules professional development on intervention design based on real data. EduPanel becomes the foundation for evidence-based school improvement.",
+    insight: "From data to policy",
+    color: "from-purple-50 to-purple-100",
+  },
+];
+
 const campaignTypes = [
   "Missing Assignment Recovery",
   "Attendance Intervention",
@@ -271,6 +295,40 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* User Stories Section */}
+        <section className="max-w-7xl mx-auto px-6 py-24">
+          <div className="text-center mb-16">
+            <h2 className="mb-4 text-4xl md:text-5xl font-bold text-black">
+              How EduPanel Works In Practice
+            </h2>
+            <p className="text-lg text-black/75 max-w-2xl mx-auto">
+              Real workflows showing how educators and students benefit from structured interventions.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {userStories.map((story, idx) => (
+              <div
+                key={story.persona}
+                className={`rounded-2xl border-2 border-stone-200 bg-gradient-to-br ${story.color} p-8 hover:shadow-lg transition-all duration-300 hover:scale-105 hover:-translate-y-2 animate-slide-up cursor-pointer`}
+                style={{ animationDelay: `${idx * 150}ms` }}
+              >
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-black">{story.persona}</h3>
+                  <p className="text-sm font-semibold text-black/70">{story.role}</p>
+                </div>
+                <p className="mb-6 leading-relaxed text-black/80">
+                  {story.story}
+                </p>
+                <div className="pt-6 border-t border-stone-300">
+                  <p className="text-sm font-semibold text-black/70">
+                    💡 <span className="text-black font-bold">{story.insight}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 

@@ -142,7 +142,7 @@ export default function SubmissionsPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <main className="flex w-full flex-col gap-6">
       {/* Header */}
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <div className="flex items-start justify-between gap-4">

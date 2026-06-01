@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 
 // This page still bridges database-backed campaign data with a few legacy mock-driven UI surfaces.
-import { activeCampaigns, mockTasks, type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
+import { type CampaignGoalType, type CampaignRecord, type TaskRecord } from "../../dashboard-data";
 
 // Reuse the shared campaign status union so the form and cards stay in sync.
 type CampaignStatus = CampaignRecord["status"];
@@ -110,14 +110,14 @@ function isFieldEmpty(field: string | string[]): boolean {
 }
 
 export default function ActiveCampaignsPage() {
-  const [campaigns, setCampaigns] = useState<CampaignRecord[]>(activeCampaigns);
+  const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
   const [form, setForm] = useState<CampaignFormState>(getEmptyForm);
   const [availableStudents, setAvailableStudents] = useState<AvailableStudent[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isStudentPickerOpen, setIsStudentPickerOpen] = useState(false);
-  // Tasks are still seeded from mock data here, which is useful for layout coverage but can drift from real database state.
-  const [tasks, setTasks] = useState<TaskRecord[]>(mockTasks);
+  // Tasks now load from the API instead of mock data
+  const [tasks, setTasks] = useState<TaskRecord[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showErrorNotification, setShowErrorNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,16 +150,56 @@ export default function ActiveCampaignsPage() {
             archived: false,
           }));
 
-          // If the database is empty, keep the demo cards so the screen still renders, while acknowledging that mock fallback can differ from persisted data.
-          setCampaigns(transformedCampaigns.length > 0 ? transformedCampaigns : activeCampaigns);
+          // Set campaigns from API
+          setCampaigns(transformedCampaigns);
         }
       } catch (error) {
         console.error('Failed to load campaigns:', error);
-        // Fall back to mock data
+        // If fetch fails, campaigns remain empty and user sees loading state
       }
     };
 
     loadCampaigns();
+  }, []);
+
+  // Fetch tasks from the API
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const response = await fetch('/api/tasks');
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Transform API tasks to TaskRecord format
+          const transformedTasks = data.map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            description: task.description || "",
+            dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
+            priority: task.priority || "MEDIUM",
+            rubric: task.rubric || "",
+            attachmentLinks: task.attachmentLinks ? JSON.parse(task.attachmentLinks) : [],
+            campaignId: task.campaignId || undefined,
+            creatorId: task.creatorId,
+            studentCount: task.taskAssignments?.length || 0,
+            completedCount: task.taskAssignments?.filter((a: any) => a.completedAt).length || 0,
+            selectedStudents: task.taskAssignments?.map((a: any) => `${a.student.firstName} ${a.student.lastName}`.trim()) || [],
+            selectedStudentIds: task.taskAssignments?.map((a: any) => a.student.id) || [],
+            comments: [],
+            evidence: [],
+            ratings: [],
+            resources: [],
+            status: "pending" as const,
+          }));
+          
+          setTasks(transformedTasks);
+        }
+      } catch (error) {
+        console.error('Failed to load tasks:', error);
+      }
+    };
+
+    loadTasks();
   }, []);
 
   // The student picker needs real student IDs because create and update flows now persist selected students.
@@ -544,7 +584,7 @@ export default function ActiveCampaignsPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <main className="flex w-full flex-col gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">
           Progress Tracking

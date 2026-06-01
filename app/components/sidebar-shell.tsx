@@ -6,15 +6,28 @@ import { useState } from "react";
 
 const teacherNavigationItems = [
   { href: "/active-campaigns", label: "Progress Tracking", shortLabel: "PT" },
-  { href: "/task-assignment", label: "Tasks", shortLabel: "TK" },
-  { href: "/students", label: "Students", shortLabel: "ST" },
+  {
+    href: "/students",
+    label: "Student Management",
+    shortLabel: "SM",
+    matchPaths: ["/students", "/task-assignment"],
+  },
+  { href: "/submissions", label: "Submissions", shortLabel: "SB" },
   { href: "/ai-writer", label: "AI Writer", shortLabel: "AI" },
+  { href: "/profile", label: "Profile", shortLabel: "PR" },
 ];
+
+type NavigationItem = {
+  href: string;
+  label: string;
+  shortLabel: string;
+  matchPaths?: string[];
+};
 
 type SidebarShellProps = {
   children: React.ReactNode;
   workspaceLabel?: string;
-  navigationItems?: Array<{ href: string; label: string; shortLabel: string }>;
+  navigationItems?: NavigationItem[];
   logoutRole?: "teacher" | "student";
   logoutStorageKeys?: string[];
   systemNote?: string;
@@ -26,7 +39,7 @@ export function SidebarShell({
   navigationItems = teacherNavigationItems,
   logoutRole = "teacher",
   logoutStorageKeys,
-  systemNote = "Campaigns turn signals into action, so every page keeps the next intervention visible.",
+  systemNote = "Track campaigns, manage students, and review submissions without losing the next intervention step.",
 }: SidebarShellProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -72,7 +85,14 @@ export function SidebarShell({
 
         <nav className="mt-8 flex flex-1 flex-col gap-2">
           {navigationItems.map((item) => {
-            const isActive = pathname === item.href;
+            const activePaths = item.matchPaths ?? [item.href];
+            const isActive = activePaths.some((activePath) => {
+              if (pathname === activePath) {
+                return true;
+              }
+
+              return pathname.startsWith(`${activePath}/`);
+            });
 
             return (
               <Link

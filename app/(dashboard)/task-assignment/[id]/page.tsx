@@ -217,7 +217,7 @@ export default function TaskDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+      <main className="flex w-full flex-col gap-6">
         <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 text-center">
           <p className="text-sm text-[var(--muted)]">Loading task details...</p>
         </div>
@@ -227,7 +227,7 @@ export default function TaskDetailPage() {
 
   if (!task) {
     return (
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+      <main className="flex w-full flex-col gap-6">
         <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 text-center">
           <p className="text-sm text-[var(--muted)]">Task not found</p>
           <Link href="/task-assignment" className="mt-4 inline-block rounded-full bg-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-white">
@@ -246,7 +246,7 @@ export default function TaskDetailPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <main className="flex w-full flex-col gap-6">
       {/* Header */}
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <div className="flex items-start justify-between gap-4">

@@ -418,7 +418,7 @@ export default function AiWriterPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <main className="flex w-full flex-col gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">AI Writer</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">

@@ -429,7 +429,7 @@ export default function StudentsPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <main className="flex w-full flex-col gap-6">
       <style>{`
         @keyframes slideDown {
           from {
@@ -462,10 +462,21 @@ export default function StudentsPage() {
         }
       `}</style>
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
-        <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Students</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
-          Add students and view their intervention status.
-        </h1>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Student Management</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+              Add students, review intervention status, and launch new task assignments.
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push("/task-assignment")}
+            className="inline-flex items-center justify-center rounded-2xl bg-[var(--foreground)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-92"
+          >
+            Assign new task
+          </button>
+        </div>
       </section>
 
       <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">

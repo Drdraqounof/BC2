@@ -30,7 +30,7 @@ EduPanel shifts teachers from:
 
 ## About
 
-EduPanel is a Next.js teacher and student workspace for intervention planning, task assignment, and progress review. The app is currently in a mixed state: several dashboard surfaces now load from Prisma-backed API routes, while a few older screens still use transitional mock data from `app/dashboard-data.ts`.
+EduPanel is a Next.js teacher and student workspace for intervention planning, task assignment, and progress review. All core dashboard surfaces (campaigns, tasks, students) now load from Prisma-backed API routes with full database consistency. The landing page features user stories showing how teachers, students, and administrators benefit from structured interventions.
 
 ## Stack
 
@@ -69,12 +69,15 @@ EduPanel is a Next.js teacher and student workspace for intervention planning, t
 
 ## Current Scope
 
-- Campaign, student, teacher, and task API routes are implemented under `app/api/`
-- Teacher task creation, campaign management, and student lookup now use database-backed fetches
-- Student dashboards load assigned tasks and related campaign context from API-backed data
-- Some pages still use transitional mock data while the mock-to-database migration is being completed
+- Campaign, student, teacher, and task API routes are fully implemented under `app/api/`
+- All dashboard pages load real data from the database (no mock data fallbacks)
+- Teacher task creation, campaign management, and student lookup use database-backed fetches
+- Student dashboards load assigned tasks and campaigns from the API
+- Campaign and task lists fetch from `/api/campaigns` and `/api/tasks` endpoints
+- Student workspace now loads campaigns from the database based on real task assignments
 - Authentication is still local-storage based for now and is intended for prototype/demo flows
 - Login and signup now enforce proper email formatting before continuing
+- Teacher profile page with edit capability is available under `/profile`
 
 ## Getting Started
 
@@ -159,38 +162,61 @@ The schema lives in `prisma/schema.prisma` and models the current EduPanel domai
 ```text
 app/
 	(dashboard)/
-		active-campaigns/
-		ai-writer/
-		task-assignment/
-		view-tasks/
-		students/
+		active-campaigns/       (campaigns from /api/campaigns)
+		ai-writer/              (prompt templates and AI outreach)
+		task-assignment/        (task creation and student assignment)
+		view-tasks/             (teacher task review workspace)
+		students/               (student roster with signals)
+		profile/                (teacher profile with edit capability)
 		layout.tsx
 	api/
+		campaigns/              (campaign CRUD)
+		students/               (student roster and profile)
+		tasks/                  (task management)
+		teachers/               (teacher profile endpoints)
 	components/
 		sidebar-shell.tsx
-	dashboard-data.ts
-	features/
-	homepage.tsx
+		task-card.tsx
+		task-list.tsx
+	homepage.tsx                (landing page with user stories)
+	use-teacher-workspace.ts    (teacher dashboard data hook)
 	login/
 	role-select/
 	signup/
 	student/
+		use-student-workspace.ts (student dashboard data hook)
 	page.tsx
 	layout.tsx
 ```
 
 ## Notes For Development
 
-- Shared dashboard demo content lives in `app/dashboard-data.ts`
+- The landing page (`app/homepage.tsx`) includes user stories showcasing real workflows for teachers, students, and administrators
 - Global theme tokens and animation utilities live in `app/globals.css`
-- The root page delegates to `app/homepage.tsx`
+- The root page delegates to `app/homepage.tsx` (redirects to features/login on non-root paths)
 - The dashboard pages are grouped under `app/(dashboard)` and rendered inside the sidebar shell
+- All dashboard pages fetch real data from API endpoints—no mock data fallbacks
 - Reuse the Prisma singleton from `lib/prisma.ts` for server-side database access
-- The repository root contains a leftover `package.json`; app commands and hosted builds should target `my-app/`
+- Teacher workspace hook is at `app/use-teacher-workspace.ts`
+- Student workspace hook is at `app/student/use-student-workspace.ts`
+- `app/dashboard-data.ts` contains only TypeScript type definitions (mock data has been removed)
 
-## Possible Next Steps
+## Possible Next Steps (Prioritized by Impact)
 
-- Finish removing remaining mock task and campaign fallbacks
-- Replace local-storage sign-in with real authentication for teachers and students
-- Connect teacher submission review to live evidence and assignment data
-- Add tests for navigation and page rendering
+### Phase 2 — Improve UX
+- [ ] Add "Risk Breakdown" cards showing why students are at risk (missing work, attendance patterns, etc.)
+- [ ] Simplify dashboard navigation to reduce cognitive overload
+- [ ] Add basic notification system for overdue tasks and campaign inactivity
+- [ ] Add student motivation features: progress streaks, completion milestones
+
+### Phase 3 — Authentication & Security
+- [ ] Replace local-storage sign-in with session-based authentication (Auth.js or similar)
+- [ ] Add protected routes and role-based access validation
+- [ ] Implement secure session handling for teachers and students
+- [ ] Add FERPA compliance considerations (data privacy, access controls)
+
+### Phase 4 — Advanced Features
+- [ ] Connect teacher submission review to live evidence and assignment data
+- [ ] Add LMS integrations
+- [ ] Implement outcome metrics (completion rates, grade improvements, attendance trends)
+- [ ] Add predictive AI for intervention recommendations

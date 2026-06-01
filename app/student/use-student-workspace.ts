@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { activeCampaigns, type CampaignRecord, type TaskRecord } from "../dashboard-data";
+import type { CampaignRecord, TaskRecord } from "../dashboard-data";
 
 type TaskApiRecord = {
   id: string;
@@ -141,9 +141,42 @@ export function useStudentWorkspace(): UseStudentWorkspaceResult {
         }
 
         const assignedTasks = await fetchVisibleTasks();
-        const assignedCampaigns = activeCampaigns.filter((campaign) =>
-          assignedTasks.some((task) => task.campaignId === campaign.id)
+        
+        // Fetch campaigns from the API instead of using mock data
+        const campaignIds = new Set(
+          assignedTasks
+            .filter((task) => task.campaignId)
+            .map((task) => task.campaignId)
         );
+
+        let assignedCampaigns: CampaignRecord[] = [];
+        if (campaignIds.size > 0) {
+          try {
+            const campaignsResponse = await fetch("/api/campaigns");
+            if (campaignsResponse.ok) {
+              const allCampaigns = await campaignsResponse.json();
+              assignedCampaigns = allCampaigns
+                .filter((campaign: any) => campaignIds.has(campaign.id))
+                .map((campaign: any) => ({
+                  id: campaign.id,
+                  title: campaign.title,
+                  description: campaign.description || "",
+                  students: `${campaign.studentLinks?.length || 0} students`,
+                  selectedStudents: campaign.studentLinks?.map((link: any) => 
+                    `${link.student?.firstName} ${link.student?.lastName}`.trim()
+                  ) || [],
+                  goal: campaign.goal || "",
+                  goalType: "Custom" as const,
+                  status: "In Progress" as const,
+                  progress: 50,
+                  accent: "bg-[var(--signal-gold)]",
+                  archived: false,
+                }));
+            }
+          } catch (error) {
+            console.error("Failed to fetch campaigns:", error);
+          }
+        }
 
         setStudent(matchedStudent);
         setTasks(assignedTasks);
