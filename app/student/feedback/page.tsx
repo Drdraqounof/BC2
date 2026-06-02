@@ -10,7 +10,7 @@ export default function StudentFeedbackPage() {
   const ratingsCount = tasks.reduce((total, task) => total + (task.ratings?.length ?? 0), 0);
 
   return (
-    <main className="flex w-full flex-col gap-6 p-4">
+    <main className="flex w-full flex-col gap-5 p-3 sm:gap-6 sm:p-4">
       {isLoading ? (
         <div className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 animate-pulse">
           <div className="h-10 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -22,17 +22,17 @@ export default function StudentFeedbackPage() {
         </section>
       ) : (
         <>
-          <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+          <section className="rounded-[34px] border border-white/60 bg-white/74 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 md:p-8">
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Feedback</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
               Teacher comments and ratings
             </h1>
-            <p className="mt-4 text-lg text-[var(--muted)]">
+            <p className="mt-4 text-base text-[var(--muted)] sm:text-lg">
               Keep all feedback in one place so you can see what to improve next.
             </p>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2">
+          <section className="grid gap-4 sm:grid-cols-2">
             <article className="rounded-[28px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
               <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Comments</p>
               <p className="mt-4 text-4xl font-semibold tracking-[-0.05em]">{feedbackCount}</p>
@@ -49,20 +49,20 @@ export default function StudentFeedbackPage() {
                 key={task.id}
                 className="rounded-[28px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)]"
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Task</p>
                     <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">{task.title}</h2>
                   </div>
                   <Link
                     href={`/student/tasks/${task.id}`}
-                    className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                    className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)] sm:w-auto"
                   >
                     Open task
                   </Link>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                     <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Comments</p>
                     {task.comments?.length ? (
@@ -84,7 +84,7 @@ export default function StudentFeedbackPage() {
                     {task.ratings?.length ? (
                       <ul className="mt-3 space-y-3 text-sm text-[var(--foreground)]">
                         {task.ratings.map((rating) => (
-                          <li key={rating.id} className="flex items-center justify-between rounded-2xl bg-[var(--panel)] p-3">
+                          <li key={rating.id} className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--panel)] p-3">
                             <span>{rating.category}</span>
                             <span className="font-semibold">{rating.value}/10</span>
                           </li>

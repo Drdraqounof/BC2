@@ -42,7 +42,7 @@ function RoleSelectContent() {
         <div className="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-amber-100 opacity-25 mix-blend-multiply blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-4 sm:px-6 sm:py-6">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-3 sm:px-6 sm:py-6">
         {/* Header */}
         <header className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-stone-200/60 bg-white/75 px-4 py-3 backdrop-blur-md sm:rounded-full sm:px-5">
           <Link href="/" className="flex items-center gap-2">
@@ -55,7 +55,7 @@ function RoleSelectContent() {
             <Link href="/">Home</Link>
             <Link href="/features">Features</Link>
           </nav>
-          <div className="flex w-full gap-3 md:hidden">
+          <div className="flex w-full flex-col gap-2 sm:flex-row md:hidden">
             <Link href="/" className="flex-1 rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-center text-sm font-medium text-slate-900 transition hover:bg-stone-50">
               Home
             </Link>
@@ -66,7 +66,7 @@ function RoleSelectContent() {
         </header>
 
         {/* Content */}
-        <div className="flex flex-1 items-center justify-center py-8 sm:py-12">
+        <div className="flex flex-1 items-center justify-center py-6 sm:py-12">
           <section className="w-full max-w-4xl">
             {/* Title Section */}
             <div className="mb-10 text-center sm:mb-12">
@@ -76,7 +76,7 @@ function RoleSelectContent() {
               <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-5xl">
                 Choose your role
               </h1>
-              <p className="mt-4 text-base text-slate-600 max-w-2xl mx-auto">
+              <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-600 sm:text-base">
                 {action === "signup"
                   ? "Select a role to create a new account with the right onboarding form."
                   : "Select your role to sign in to the appropriate workspace and features tailored to your needs."}
@@ -84,7 +84,7 @@ function RoleSelectContent() {
             </div>
 
             {/* Role Cards Grid */}
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
               {roles.map((role) => (
                 <button
                   key={role.id}
@@ -102,17 +102,17 @@ function RoleSelectContent() {
                   />
 
                   {/* Card content */}
-                  <div className="relative flex flex-col items-center p-6 text-center sm:p-8">
+                  <div className="relative flex flex-col items-center p-5 text-center sm:p-8">
                     {/* Icon */}
                     <div className="mb-4 text-5xl sm:text-6xl">{role.icon}</div>
 
                     {/* Title */}
-                    <h2 className="text-2xl font-semibold text-slate-900 mb-3">
+                    <h2 className="mb-3 text-xl font-semibold text-slate-900 sm:text-2xl">
                       {role.title}
                     </h2>
 
                     {/* Description */}
-                    <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                    <p className="mb-5 text-sm leading-6 text-slate-600 sm:mb-6 sm:leading-relaxed">
                       {role.description}
                     </p>
 

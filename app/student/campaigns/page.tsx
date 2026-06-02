@@ -8,7 +8,7 @@ export default function StudentCampaignsPage() {
   const { student, campaigns, tasks, isLoading, loadError } = useStudentWorkspace();
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-3 sm:gap-6 sm:p-4">
       {isLoading ? (
         <div className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 animate-pulse">
           <div className="h-10 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -20,12 +20,12 @@ export default function StudentCampaignsPage() {
         </section>
       ) : (
         <>
-          <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+          <section className="rounded-[34px] border border-white/60 bg-white/74 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 md:p-8">
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">My Campaigns</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
               Support plans affecting you
             </h1>
-            <p className="mt-4 text-lg text-[var(--muted)]">
+            <p className="mt-4 text-base text-[var(--muted)] sm:text-lg">
               See the campaigns you are part of, the goals behind them, and the tasks connected to each one.
             </p>
           </section>
@@ -44,7 +44,7 @@ export default function StudentCampaignsPage() {
                     key={campaign.id}
                     className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="max-w-3xl">
                         <div className="flex flex-wrap items-center gap-3">
                           <span className={`h-3 w-3 rounded-full ${campaign.accent}`} />
@@ -60,14 +60,14 @@ export default function StudentCampaignsPage() {
                         <p className="mt-4 text-sm text-[var(--foreground)]">Goal: {campaign.goal}</p>
                       </div>
 
-                      <div className="min-w-60 rounded-[24px] border border-[var(--border)] bg-white p-4">
+                      <div className="w-full rounded-[24px] border border-[var(--border)] bg-white p-4 lg:w-60 lg:min-w-60">
                         <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Campaign Progress</p>
                         <p className="mt-3 text-3xl font-semibold tracking-[-0.04em]">{campaign.progress}%</p>
                         <p className="mt-2 text-sm text-[var(--muted)]">{campaignTasks.length} linked task{campaignTasks.length === 1 ? "" : "s"}</p>
                       </div>
                     </div>
 
-                    <div className="mt-6 grid gap-3 md:grid-cols-2">
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
                       {campaignTasks.map((task) => (
                         <Link
                           key={task.id}

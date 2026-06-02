@@ -19,7 +19,7 @@ export default function StudentTaskDetailPage() {
   const campaign = campaigns.find((item) => item.id === task?.campaignId);
 
   return (
-    <main className="flex w-full flex-col gap-6 p-4">
+    <main className="flex w-full flex-col gap-5 p-3 sm:gap-6 sm:p-4">
       {isLoading ? (
         <div className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 animate-pulse">
           <div className="h-10 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -35,24 +35,24 @@ export default function StudentTaskDetailPage() {
         </section>
       ) : (
         <>
-          <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+          <section className="rounded-[34px] border border-white/60 bg-white/74 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 md:p-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Task Detail</p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">{task.title}</h1>
-                <p className="mt-4 text-lg text-[var(--muted)]">{task.description}</p>
+                <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl md:text-5xl">{task.title}</h1>
+                <p className="mt-4 text-base text-[var(--muted)] sm:text-lg">{task.description}</p>
               </div>
               <Link
                 href="/student"
-                className="rounded-full border border-[var(--border)] bg-white px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                className="w-full rounded-full border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)] sm:w-auto"
               >
                 Back to tasks
               </Link>
             </div>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-[1.35fr_0.65fr]">
-            <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+          <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+            <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:p-6">
               <div className="flex flex-wrap items-center gap-3">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[task.status]}`}>
                   {task.status.replace(/-/g, " ")}
@@ -67,7 +67,7 @@ export default function StudentTaskDetailPage() {
                 ) : null}
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Due Date</p>
                   <p className="mt-2 text-sm font-medium text-[var(--foreground)]">
@@ -87,7 +87,7 @@ export default function StudentTaskDetailPage() {
                 </p>
               </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Resources</p>
                   {task.attachmentLinks?.length ? (
@@ -125,12 +125,12 @@ export default function StudentTaskDetailPage() {
             </article>
 
             <div className="flex flex-col gap-4">
-              <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+              <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:p-6">
                 <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Next Actions</p>
                 <div className="mt-4 flex flex-col gap-3">
                   <Link
                     href="/student/submissions"
-                    className="rounded-2xl bg-[var(--foreground)] px-4 py-3 text-center text-sm font-medium text-white transition hover:opacity-90"
+                    className="rounded-2xl bg-[var(--foreground)] px-4 py-3 text-center text-sm font-medium !text-white transition hover:opacity-90"
                   >
                     Review submissions
                   </Link>
@@ -143,7 +143,7 @@ export default function StudentTaskDetailPage() {
                 </div>
               </article>
 
-              <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
+              <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:p-6">
                 <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Teacher Notes</p>
                 {task.comments?.length ? (
                   <ul className="mt-4 space-y-3 text-sm text-[var(--foreground)]">

@@ -6,7 +6,7 @@ export default function StudentProfilePage() {
   const { student, tasks, isLoading, loadError } = useStudentWorkspace();
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-3 sm:gap-6 sm:p-4">
       {isLoading ? (
         <div className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 animate-pulse">
           <div className="h-10 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -18,17 +18,17 @@ export default function StudentProfilePage() {
         </section>
       ) : (
         <>
-          <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+          <section className="rounded-[34px] border border-white/60 bg-white/74 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 md:p-8">
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">My Profile</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
               {student.firstName} {student.lastName}
             </h1>
-            <p className="mt-4 text-lg text-[var(--muted)]">
+            <p className="mt-4 text-base text-[var(--muted)] sm:text-lg">
               Keep your student account details and workload summary visible in one place.
             </p>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-2">
+          <section className="grid gap-4 xl:grid-cols-2">
             <article className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
               <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Account</p>
               <div className="mt-6 grid gap-4">
@@ -38,7 +38,7 @@ export default function StudentProfilePage() {
                 </div>
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Email</p>
-                  <p className="mt-2 text-lg font-semibold">{student.email}</p>
+                  <p className="mt-2 break-words text-base font-semibold sm:text-lg">{student.email}</p>
                 </div>
                 <div className="rounded-[24px] border border-[var(--border)] bg-white p-4">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Grade</p>

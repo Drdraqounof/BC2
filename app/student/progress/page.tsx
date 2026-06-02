@@ -10,7 +10,7 @@ export default function StudentProgressPage() {
   const completionRate = tasks.length === 0 ? 0 : Math.round((completedTasks / tasks.length) * 100);
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-3 sm:gap-6 sm:p-4">
       {isLoading ? (
         <div className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 animate-pulse">
           <div className="h-10 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -22,17 +22,17 @@ export default function StudentProgressPage() {
         </section>
       ) : (
         <>
-          <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+          <section className="rounded-[34px] border border-white/60 bg-white/74 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6 md:p-8">
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">My Progress</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
               Progress for {student.firstName}
             </h1>
-            <p className="mt-4 text-lg text-[var(--muted)]">
+            <p className="mt-4 text-base text-[var(--muted)] sm:text-lg">
               Track how much work is complete, what still needs attention, and where feedback is waiting.
             </p>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article className="rounded-[28px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
               <p className="text-sm uppercase tracking-[0.24em] text-[var(--muted)]">Completion</p>
               <p className="mt-4 text-4xl font-semibold tracking-[-0.05em]">{completionRate}%</p>
@@ -51,8 +51,8 @@ export default function StudentProgressPage() {
             </article>
           </section>
 
-          <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)]">
-            <div className="flex items-center justify-between gap-4">
+          <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Progress Bar</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Task Completion Rate</h2>
@@ -69,10 +69,10 @@ export default function StudentProgressPage() {
               />
             </div>
 
-            <div className="mt-6 grid gap-3 md:grid-cols-2">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {tasks.map((task) => (
                 <article key={task.id} className="rounded-[24px] border border-[var(--border)] bg-white p-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <h3 className="text-lg font-semibold tracking-[-0.03em]">{task.title}</h3>
                     <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">
                       {task.status.replace("-", " ")}

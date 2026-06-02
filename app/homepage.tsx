@@ -262,7 +262,7 @@ export default function HomePage() {
             <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
               Common Challenges
             </h2>
-            <p className="text-lg text-black/75 max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-base text-black/75 sm:text-lg">
               Educators today face obstacles that existing tools don't address.
             </p>
           </div>
@@ -288,7 +288,7 @@ export default function HomePage() {
               <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
                 Platform Capabilities
               </h2>
-              <p className="text-lg text-black/75 max-w-2xl mx-auto">
+              <p className="mx-auto max-w-2xl text-base text-black/75 sm:text-lg">
                 Six core features designed to streamline intervention management and improve student outcomes.
               </p>
             </div>
@@ -318,7 +318,7 @@ export default function HomePage() {
             <h2 className="mb-4 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
               How EduPanel Works In Practice
             </h2>
-            <p className="text-lg text-black/75 max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-base text-black/75 sm:text-lg">
               Real workflows showing how educators and students benefit from structured interventions.
             </p>
           </div>
@@ -330,10 +330,10 @@ export default function HomePage() {
                 style={{ animationDelay: `${idx * 150}ms` }}
               >
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-black">{story.persona}</h3>
+                  <h3 className="text-lg font-bold text-black sm:text-xl">{story.persona}</h3>
                   <p className="text-sm font-semibold text-black/70">{story.role}</p>
                 </div>
-                <p className="mb-6 leading-relaxed text-black/80">
+                <p className="mb-6 text-sm leading-7 text-black/80 sm:text-base sm:leading-relaxed">
                   {story.story}
                 </p>
                 <div className="pt-6 border-t border-stone-300">
@@ -352,7 +352,7 @@ export default function HomePage() {
             <h2 className="mb-4 text-3xl font-bold text-black md:text-4xl">
               Campaign Templates
             </h2>
-            <p className="mb-10 max-w-2xl text-black/75">
+            <p className="mb-8 max-w-2xl text-sm text-black/75 sm:mb-10 sm:text-base">
               Launch structured interventions for any student support scenario. Pre-built templates accelerate deployment while maintaining flexibility.
             </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -379,17 +379,17 @@ export default function HomePage() {
             </div>
             <div className="grid gap-8 md:grid-cols-2 md:gap-12">
               {benefits.map((benefit, idx) => (
-                <div key={benefit.number} className="flex gap-5 animate-slide-up sm:gap-8" style={{ animationDelay: `${idx * 150}ms` }}>
+                <div key={benefit.number} className="flex flex-col gap-4 animate-slide-up sm:flex-row sm:gap-8" style={{ animationDelay: `${idx * 150}ms` }}>
                   <div className="flex-shrink-0">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-teal-600 to-amber-600 text-lg font-bold text-white">
                       {benefit.number}
                     </div>
                   </div>
                   <div>
-                    <h3 className="mb-2 text-xl font-bold text-black">
+                    <h3 className="mb-2 text-lg font-bold text-black sm:text-xl">
                       {benefit.title}
                     </h3>
-                    <p className="text-black/75 leading-relaxed">
+                    <p className="text-sm leading-7 text-black/75 sm:text-base sm:leading-relaxed">
                       {benefit.description}
                     </p>
                   </div>
@@ -405,7 +405,7 @@ export default function HomePage() {
             <h2 className="mb-6 text-3xl font-bold text-black sm:text-4xl md:text-5xl">
               Transform Student Support
             </h2>
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-black/75">
+            <p className="mx-auto mb-8 max-w-2xl text-base text-black/75 sm:mb-10 sm:text-lg">
               Join educators who are replacing reactive decision-making with data-driven interventions. See the difference structured support makes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -428,8 +428,8 @@ export default function HomePage() {
         {/* Footer */}
         <footer className="border-t border-stone-200 bg-stone-50/80 py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="mb-6 flex flex-col items-center justify-between gap-6 md:flex-row">
-              <p className="text-sm text-black">© 2024 EduPanel. Supporting educators in evidence-based student intervention.</p>
+            <div className="mb-6 flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+              <p className="max-w-xl text-sm text-black">© 2024 EduPanel. Supporting educators in evidence-based student intervention.</p>
               <Link 
                 href="/privacy-policy" 
                 className="text-sm text-black/70 hover:text-black transition font-medium"
