@@ -142,7 +142,7 @@ export default function SubmissionsPage() {
   };
 
   return (
-    <main className="flex w-full flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       {/* Header */}
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <div className="flex items-start justify-between gap-4">
@@ -155,7 +155,7 @@ export default function SubmissionsPage() {
       </section>
 
       {/* Filter Buttons */}
-      <section className="flex gap-3">
+      <section className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button
           onClick={() => setFilterStatus("submitted")}
           className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
@@ -223,7 +223,7 @@ export default function SubmissionsPage() {
               >
                 {/* Task Header */}
                 <div className="p-5 border-b border-[var(--border)] cursor-pointer hover:bg-[var(--panel)] transition" onClick={() => setSelectedTaskId(selectedTaskId === task.id ? null : task.id)}>
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-semibold">{task.title}</h3>
@@ -252,7 +252,7 @@ export default function SubmissionsPage() {
                   <div className="divide-y divide-[var(--border)]">
                     {assignments.map((assignment) => (
                       <div key={assignment.id} className="p-5 hover:bg-[var(--panel)] transition">
-                        <div className="flex items-center justify-between gap-4">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex-1">
                             <p className="font-semibold">
                               {assignment.student.firstName} {assignment.student.lastName}
@@ -274,7 +274,7 @@ export default function SubmissionsPage() {
                               )}
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                             {!assignment.completedAt && (
                               <button
                                 onClick={() => handleMarkComplete(task.id, assignment.studentId, false)}

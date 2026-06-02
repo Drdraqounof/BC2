@@ -429,7 +429,7 @@ export default function StudentsPage() {
   };
 
   return (
-    <main className="flex w-full flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       <style>{`
         @keyframes slideDown {
           from {
@@ -480,7 +480,7 @@ export default function StudentsPage() {
       </section>
 
       <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Classroom Codes</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Manage teacher classrooms</h2>
@@ -653,7 +653,7 @@ export default function StudentsPage() {
                 </select>
               </label>
 
-              <div className="flex items-end gap-3 animate-in fade-in slide-in-from-bottom duration-500" style={{animationDelay: "0.35s", animationFillMode: "both"}}>
+              <div className="flex flex-col items-stretch gap-3 animate-in fade-in slide-in-from-bottom duration-500 sm:flex-row sm:items-end" style={{animationDelay: "0.35s", animationFillMode: "both"}}>
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -675,7 +675,7 @@ export default function StudentsPage() {
       </section>
 
       <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Student Directory</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
@@ -740,7 +740,7 @@ export default function StudentsPage() {
                 </div>
                 <button
                   onClick={() => openProfile(student)}
-                  className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--panel-strong)]"
+                  className="w-full rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--panel-strong)] md:w-auto"
                 >
                   View Profile
                 </button>
@@ -869,7 +869,7 @@ export default function StudentsPage() {
                 )}
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => closeProfile()}
                   className="flex-1 rounded-2xl border border-[var(--border)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--panel)]"
@@ -917,7 +917,7 @@ export default function StudentsPage() {
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
                 onClick={() => setIsDeleteConfirmOpen(false)}

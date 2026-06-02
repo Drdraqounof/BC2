@@ -164,9 +164,9 @@ export default function StudentProfilePage() {
   }, [params.id]);
 
   return (
-    <main className="flex w-full flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Student Profile</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
@@ -194,28 +194,28 @@ export default function StudentProfilePage() {
         <>
           <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Student Information</p>
-            <div className="mt-5 flex flex-wrap gap-3 overflow-x-auto">
-              <article className="min-w-40 rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <article className="rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Full Name</p>
                 <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
                   {student.firstName} {student.lastName}
                 </p>
               </article>
-              <article className="min-w-52 rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
+              <article className="rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Email</p>
                 <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">{student.email}</p>
               </article>
-              <article className="min-w-32 rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
+              <article className="rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Grade</p>
                 <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">{student.gradeLabel || "-"}</p>
               </article>
-              <article className="min-w-44 rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
+              <article className="rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Classroom</p>
                 <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
                   {student.classroom?.name || "No classroom assigned"}
                 </p>
               </article>
-              <article className="min-w-32 rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
+              <article className="rounded-[22px] border border-[var(--border)] bg-white px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Classroom Code</p>
                 <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">
                   {student.classroom?.code || student.classroomCode || "-"}
@@ -225,7 +225,7 @@ export default function StudentProfilePage() {
           </section>
 
           <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Assigned Classwork</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Current Tasks</h2>
@@ -269,7 +269,7 @@ export default function StudentProfilePage() {
           </section>
 
           <section className="rounded-[32px] border border-[var(--border)] bg-[var(--panel)] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-6">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Assigned Campaigns</p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Current Campaigns</h2>

@@ -57,8 +57,8 @@ export function SidebarShell({
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)] lg:flex-row">
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--background)_88%,white)] px-4 py-3 backdrop-blur lg:hidden">
+    <div className="flex min-h-[100dvh] flex-col bg-[var(--background)] text-[var(--foreground)] lg:flex-row">
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[color:color-mix(in_srgb,var(--background)_88%,white)] px-3 py-3 backdrop-blur sm:px-4 lg:hidden">
         <div>
           <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--muted)]">
             EduPanel
@@ -87,7 +87,7 @@ export function SidebarShell({
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-[min(18rem,85vw)] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--panel-dark)] px-3 py-4 text-white transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-[min(20rem,88vw)] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--panel-dark)] px-3 py-4 text-white transition-transform duration-300 sm:w-[min(22rem,78vw)] lg:sticky lg:top-0 lg:h-[100dvh] lg:translate-x-0 ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         } ${
           collapsed ? "lg:w-20" : "lg:w-72"
@@ -194,12 +194,12 @@ export function SidebarShell({
         </button>
       </aside>
 
-      <div className="relative flex min-h-screen flex-1 overflow-hidden">
+      <div className="relative flex min-h-[100dvh] flex-1 overflow-x-clip">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-[-8rem] top-[-6rem] h-72 w-72 rounded-full bg-[color:color-mix(in_srgb,var(--signal-green)_22%,transparent)] blur-3xl" />
           <div className="absolute right-[-5rem] top-20 h-80 w-80 rounded-full bg-[color:color-mix(in_srgb,var(--signal-red)_18%,transparent)] blur-3xl" />
         </div>
-        <div className="relative flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="relative mx-auto flex w-full max-w-[88rem] flex-1 px-3 py-3 sm:px-5 sm:py-5 lg:px-8 lg:py-8 xl:px-10 xl:py-10">
           {children}
         </div>
       </div>

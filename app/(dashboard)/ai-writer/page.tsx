@@ -418,7 +418,7 @@ export default function AiWriterPage() {
   };
 
   return (
-    <main className="flex w-full flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">AI Writer</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
@@ -483,7 +483,7 @@ export default function AiWriterPage() {
 
         {allStudents.length > 0 && (
           <div className="mt-4 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm font-medium text-[var(--foreground)]">Select Students</p>
               <button
                 onClick={toggleAllStudents}
@@ -536,7 +536,7 @@ export default function AiWriterPage() {
         <button
           onClick={handleGenerateEmails}
           disabled={isLoading || (!selectedCampaignId && !selectedTaskId) || selectedStudents.size === 0}
-          className="mt-6 rounded-full bg-[var(--signal-blue)] px-6 py-3 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-6 w-full rounded-full bg-[var(--signal-blue)] px-6 py-3 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {isLoading ? `Generating ${selectedStudents.size} emails...` : `Generate Emails for ${selectedStudents.size} Student${selectedStudents.size !== 1 ? 's' : ''}`}
         </button>
@@ -552,12 +552,12 @@ export default function AiWriterPage() {
                 key={studentName}
                 className="rounded-[24px] border border-[var(--border)] bg-white p-5"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="font-semibold text-[var(--foreground)]">{studentName}</p>
                     <p className="text-xs text-[var(--muted)]">{getStudentInfo(studentName)?.email || "No student email on file"}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <button
                       onClick={() => handleCopyEmail(studentName)}
                       className="rounded-full border border-[var(--border)] px-3 py-1 text-xs font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"
@@ -616,7 +616,7 @@ export default function AiWriterPage() {
             />
 
             {/* Actions */}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button
                 onClick={handlePrevEmail}
                 disabled={currentPreviewIndex === 0}
@@ -625,7 +625,7 @@ export default function AiWriterPage() {
                 ← Previous
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <button
                   onClick={() => handleCopyEmail(currentStudent)}
                   className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--panel)]"

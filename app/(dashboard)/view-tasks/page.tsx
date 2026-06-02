@@ -76,10 +76,10 @@ export default function ViewTasksPage() {
   }
 
   return (
-    <main className="flex w-full flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       {/* Header */}
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Task Management</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
@@ -91,7 +91,7 @@ export default function ViewTasksPage() {
           </div>
           <button
             onClick={() => router.push("/task-assignment")}
-            className="flex-shrink-0 rounded-2xl bg-[var(--signal-blue)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+            className="w-full rounded-2xl bg-[var(--signal-blue)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 sm:w-auto sm:flex-shrink-0"
           >
             Create new task
           </button>

@@ -584,7 +584,7 @@ export default function ActiveCampaignsPage() {
   }
 
   return (
-    <main className="flex w-full flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">
           Progress Tracking
@@ -744,7 +744,7 @@ export default function ActiveCampaignsPage() {
         </form>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {visibleCampaigns.map((campaign) => (
           <article
             key={campaign.id}
@@ -792,18 +792,18 @@ export default function ActiveCampaignsPage() {
                 {campaign.progress}% toward goal
               </p>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <button
                 type="button"
                 onClick={() => openCampaignDetails(campaign)}
-                className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white"
+                className="w-full rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white sm:w-auto"
               >
                 Details
               </button>
               <button
                 type="button"
                 onClick={() => openCampaignDetails(campaign, true)}
-                className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white"
+                className="w-full rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white sm:w-auto"
               >
                 Edit details
               </button>
@@ -811,7 +811,7 @@ export default function ActiveCampaignsPage() {
                 <button
                   type="button"
                   onClick={() => openCampaignDetails(campaign)}
-                  className="rounded-full border border-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-[var(--signal-blue)] transition hover:bg-[var(--signal-blue)]/10"
+                  className="w-full rounded-full border border-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-[var(--signal-blue)] transition hover:bg-[var(--signal-blue)]/10 sm:w-auto"
                 >
                   View tasks
                 </button>
@@ -819,14 +819,14 @@ export default function ActiveCampaignsPage() {
               <button
                 type="button"
                 onClick={() => completeCampaign(campaign.id)}
-                className="rounded-full bg-[var(--signal-green)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                className="w-full rounded-full bg-[var(--signal-green)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 sm:w-auto"
               >
                 Complete campaign
               </button>
               <button
                 type="button"
                 onClick={() => archiveCampaign(campaign.id)}
-                className="rounded-full bg-[var(--signal-gold)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                className="w-full rounded-full bg-[var(--signal-gold)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 sm:w-auto"
               >
                 Archive campaign
               </button>

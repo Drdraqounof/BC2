@@ -503,7 +503,7 @@ export default function TaskAssignmentPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-0 sm:gap-6">
       {/* Header */}
       <section className="rounded-[34px] border border-white/60 bg-white/74 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
         <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Task Management</p>
@@ -729,15 +729,15 @@ export default function TaskAssignmentPage() {
         </section>
       ) : (
         <section className="rounded-[30px] border border-[var(--border)] bg-[var(--panel)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.07)] md:p-8">
-          <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.28em] text-[var(--muted)]">Quick actions</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">Manage your tasks</h2>
             </div>
-            <button
+              <button
               type="button"
               onClick={() => setIsCreatingTask(true)}
-              className="rounded-2xl bg-[var(--signal-blue)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:opacity-90"
+                className="w-full rounded-2xl bg-[var(--signal-blue)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:opacity-90 sm:w-auto"
             >
               Create new task
             </button>
@@ -790,7 +790,7 @@ export default function TaskAssignmentPage() {
               <button
                 type="button"
                 onClick={() => setIsCreatingTask(true)}
-                className="mt-4 rounded-full bg-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                className="mt-4 w-full rounded-full bg-[var(--signal-blue)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 sm:w-auto"
               >
                 Create your first task
               </button>
